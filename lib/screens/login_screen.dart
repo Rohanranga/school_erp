@@ -23,7 +23,8 @@ class _LoginScreenState extends State<LoginScreen> {
       // Fetch email associated with the enrollment number from Firestore
       var snapshot = await FirebaseFirestore.instance
           .collection('users')
-          .where('enrollmentNumber', isEqualTo: enrollmentController.text.trim())
+          .where('enrollment_number', // Use the correct field name
+              isEqualTo: enrollmentController.text.trim())
           .get();
 
       if (snapshot.docs.isNotEmpty) {
@@ -97,9 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Password TextField
                   CommonTextField(
+                    isPassword: true,
                     controller: passwordController,
                     hintText: "Password",
-                    obscureText: true,
                     textStyle: const TextStyle(color: Colors.white),
                     hintTextStyle: const TextStyle(color: Colors.white70),
                   ),

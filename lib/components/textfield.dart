@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/colors.dart';
 
-class CommonTextField extends StatelessWidget {
+class CommonTextField extends StatefulWidget {
   final TextEditingController controller;
   final TextInputAction? textInputAction;
   final bool? obscureText;
@@ -9,11 +9,12 @@ class CommonTextField extends StatelessWidget {
   final VoidCallback? onTap;
   final int? maxLines;
   final String? hintText;
-  final TextStyle? textStyle;     // Optional custom text style
+  final TextStyle? textStyle; // Optional custom text style
   final TextStyle? hintTextStyle; // Optional custom hint text style
+  final bool isPassword; // New property to indicate if it's a password field
 
   const CommonTextField({
-    Key? key,
+    super.key,
     required this.controller,
     this.textInputAction,
     this.obscureText,
@@ -21,30 +22,62 @@ class CommonTextField extends StatelessWidget {
     this.onTap,
     this.maxLines,
     this.hintText,
-    this.textStyle,     // Text style parameter
+    this.textStyle, // Text style parameter
     this.hintTextStyle, // Hint text style parameter
-  }) : super(key: key);
+    this.isPassword = false, // Default to false
+  });
+
+  @override
+  _CommonTextFieldState createState() => _CommonTextFieldState();
+}
+
+class _CommonTextFieldState extends State<CommonTextField> {
+  bool _obscureText = false; // Initialize with false
+
+  @override
+  void initState() {
+    super.initState();
+    _obscureText =
+        widget.obscureText ?? false; // Initialize with obscureText value
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isPassword) {
+      _obscureText =
+          !_obscureText; // Toggle obscureText when isPassword is true
+    }
+
     return TextField(
-      controller: controller,
+      controller: widget.controller,
       cursorColor: primaryColor,
-      textInputAction: textInputAction,
+      textInputAction: widget.textInputAction,
       scrollPadding: EdgeInsets.symmetric(
           vertical: MediaQuery.of(context).viewInsets.bottom),
-      textCapitalization: textCapitalization ?? TextCapitalization.sentences,
-      obscureText: obscureText ?? false,
-      style: textStyle,     // Apply custom text style if provided
+      textCapitalization:
+          widget.textCapitalization ?? TextCapitalization.sentences,
+      obscureText: _obscureText,
+      style: widget.textStyle,
       decoration: InputDecoration(
-        hintText: hintText,  // Set hintText here
-        hintStyle: hintTextStyle, // Apply custom hint text style if provided
+        hintText: widget.hintText,
+        hintStyle: widget.hintTextStyle,
         focusedBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: primaryColor),
         ),
+        suffixIcon: widget.isPassword
+            ? IconButton(
+                icon: Icon(
+                    _obscureText ? Icons.visibility_off : Icons.visibility),
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+              )
+            : null,
       ),
-      onTap: onTap,
-      maxLines: maxLines ?? 1,  // Default to single-line input if maxLines is not provided
+      onTap: widget.onTap,
+      maxLines: widget.maxLines ?? 1,
     );
   }
 }

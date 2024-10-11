@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:school_erp/components/plain_background.dart';
@@ -14,23 +15,33 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController enrollmentController = TextEditingController(); // Added Enrollment Number controller
+  final TextEditingController enrollmentController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance; // Add Firestore instance
 
   Future<void> _signup() async {
     try {
       // Perform signup
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      // Optionally, you can save the enrollment number along with other user details.
+      // Save enrollment number and email in Firestore
       String enrollmentNumber = enrollmentController.text.trim();
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'enrollment_number': enrollmentNumber,
+        'email': emailController.text.trim(),
+        'created_at': FieldValue.serverTimestamp(),
+      });
 
       // Navigate to HomeScreen
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Signup failed: $e")));
@@ -56,7 +67,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     height: 160,
                     decoration: BoxDecoration(
                       color: Colors.white, // White background
-                      borderRadius: BorderRadius.circular(20), // Rounded corners
+                      borderRadius:
+                          BorderRadius.circular(20), // Rounded corners
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -80,11 +92,11 @@ class _SignupScreenState extends State<SignupScreen> {
                     hintText: "Email",
                     textStyle: const TextStyle(color: Colors.white),
                     hintTextStyle: const TextStyle(color: Colors.white70),
-
                   ),
                   const SizedBox(height: 20),
                   CommonTextField(
                     controller: passwordController,
+                    isPassword: true,
                     hintText: "Password",
                     obscureText: true,
                     textStyle: const TextStyle(color: Colors.white),
