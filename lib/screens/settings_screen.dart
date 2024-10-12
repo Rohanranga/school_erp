@@ -123,21 +123,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SettingsOption(
                   optionName: "Logout",
                   onTap: () {
-                    //loading dialog
                     showDialog(
-                        context: context,
-                        builder: (BuildContext context) =>
-                            const LoaderDialog());
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text("Logout"),
+                          content:
+                              const Text("Are you sure you want to logout?"),
+                          actions: [
+                            TextButton(
+                              child: const Text("Cancel"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            TextButton(
+                              child: const Text("Logout"),
+                              onPressed: () {
+                                //loading dialog
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) =>
+                                      const LoaderDialog(),
+                                );
 
-                    //clears user data from hive box
-                    userBox.clear().then(
-                          (value) => Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const LoginScreen(),
-                              ),
-                              (route) => false),
+                                //clears user data from hive box
+                                userBox.clear().then(
+                                      (value) => Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const LoginScreen(),
+                                        ),
+                                        (route) => false,
+                                      ),
+                                    );
+                              },
+                            ),
+                          ],
                         );
+                      },
+                    );
                   },
                 ),
                 const SizedBox(height: 20.0),

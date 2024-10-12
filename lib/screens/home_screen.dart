@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             Text(
-                              "Enrollment: ${userBox.get("user")?.enrollmentNumber ?? "Null"}",
+                              "Enrollment: ${userBox.get("users")?.enrollmentNumber != null ? userBox.get("user")?.enrollmentNumber : "Null"}",
                               style: const TextStyle(
                                 color: Colors.white54,
                                 fontSize: 16.0,

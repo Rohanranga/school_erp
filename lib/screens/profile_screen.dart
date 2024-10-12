@@ -49,6 +49,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       borderSide: BorderSide(color: primaryColor),
     ));
 
+    String enrollmentNumber =
+        userBox.get("user")?.enrollmentNumber ?? "Not available";
+
     return Scaffold(
       backgroundColor: const Color(0xFF7292CF),
       body: SafeArea(
@@ -157,7 +160,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           height: 80.0,
                                           width: 80.0,
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFCACACA),
+                                            color: const Color.fromARGB(
+                                                255, 214, 13, 13),
                                             borderRadius:
                                                 BorderRadius.circular(15.0),
                                           ),
@@ -178,10 +182,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               ),
                                             ),
                                             Text(
-                                              "Enroll: ${userBox.get("user")?.enrollmentNumber ?? "null"}",
+                                              "Enroll: $enrollmentNumber",
                                               style: const TextStyle(
-                                                  fontSize: 12.0,
-                                                  color: Color(0xFF777777)),
+                                                fontSize: 12.0,
+                                                color: Color(0xFF777777),
+                                              ),
                                             ),
                                             Text(
                                               "Semester: ${userBox.get("user")?.semester ?? "null"}",
@@ -196,7 +201,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     const Padding(
                                       padding:
                                           EdgeInsets.only(top: 4.0, right: 4.0),
-                                      child: Icon(Icons.camera_alt_outlined),
+                                      child: IconButton(
+                                        icon: const Icon(Icons.camera_outlined),
+                                        onPressed: null,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -218,14 +226,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       ),
                                       SizedBox(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width /
-                                              2.4,
-                                          child: TextField(
-                                            cursorColor: primaryColor,
-                                            controller: contactController,
-                                          ),
+                                        width:
+                                            MediaQuery.of(context).size.width /
+                                                2.4,
+                                        child: TextField(
+                                          cursorColor: primaryColor,
+                                          controller: contactController,
+                                        ),
                                       ),
                                     ],
                                   ),
