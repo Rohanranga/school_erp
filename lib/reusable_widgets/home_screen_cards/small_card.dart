@@ -4,9 +4,14 @@ class HomeScreenSmallCard extends StatelessWidget {
   final IconData icon;
   final String buttonText;
   final VoidCallback? onTap;
+  final String tooltext;
 
   const HomeScreenSmallCard(
-      {super.key, required this.icon, required this.buttonText, this.onTap});
+      {super.key,
+      required this.icon,
+      required this.buttonText,
+      this.onTap,
+      required this.tooltext});
 
   @override
   Widget build(BuildContext context) {
@@ -20,25 +25,30 @@ class HomeScreenSmallCard extends StatelessWidget {
           color: const Color(0xFF345FB4).withOpacity(0.1),
           borderRadius: BorderRadius.circular(10.0),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              icon,
-              size: 50.0,
-              color: const Color(0xFF345FB4),
-            ),
-            const SizedBox(height: 10.0),
-            Text(
-              buttonText,
-              style: const TextStyle(
-                fontSize: 14.0,
-                color: Colors.black,
-                fontWeight: FontWeight.w400,
+        child: Tooltip(
+          preferBelow: true,
+          message: tooltext,
+          waitDuration: Durations.long1,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                icon,
+                size: 50.0,
+                color: const Color(0xFF345FB4),
               ),
-            )
-          ],
+              const SizedBox(height: 10.0),
+              Text(
+                buttonText,
+                style: const TextStyle(
+                  fontSize: 14.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w400,
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );

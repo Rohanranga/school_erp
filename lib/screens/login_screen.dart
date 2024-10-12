@@ -17,13 +17,18 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController enrollmentController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _isLoading = false;
 
   Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       // Fetch email associated with the enrollment number from Firestore
       var snapshot = await FirebaseFirestore.instance
           .collection('users')
-          .where('enrollmentNumber', isEqualTo: enrollmentController.text.trim())
+          .where('enrollment_number', // Use the correct field name
+              isEqualTo: enrollmentController.text.trim())
           .get();
 
       if (snapshot.docs.isNotEmpty) {
@@ -49,9 +54,33 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       // Handle login error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Login failed: $e")),
-      );
+      if (e is FirebaseAuthException) {
+        if (e.code == 'invalid-email') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Invalid email")),
+          );
+        } else if (e.code == 'wrong-password') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Wrong password")),
+          );
+        } else if (e.code == 'user-not-found') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("User  not found")),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Login failed: $e")),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("An error occurred: $e")),
+        );
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -97,9 +126,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Password TextField
                   CommonTextField(
+                    isPassword: true,
                     controller: passwordController,
                     hintText: "Password",
-                    obscureText: true,
                     textStyle: const TextStyle(color: Colors.white),
                     hintTextStyle: const TextStyle(color: Colors.white70),
                   ),
@@ -108,7 +137,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Login Button
                   ElevatedButton(
                     onPressed: _login,
-                    child: const Text("Login"),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(
+                            color: Colors.white,
+                          )
+                        : const Text("Login"),
                   ),
 
                   // Signup Redirect Button

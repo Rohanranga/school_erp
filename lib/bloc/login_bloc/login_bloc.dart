@@ -1,65 +1,137 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../model/user_model.dart';
 
+// LoginBloc implementation
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   LoginBloc() : super(const LoginInitialState()) {
-    on<LoginUserState>((event, emit) async {
-      //User box initialization
-      Box<UserModel> userBox = Hive.box<UserModel>('users');
+    // Handling Login event
+    on<LoginUserEvent>((event, emit) async {
+      try {
+        Box<UserModel> userBox = Hive.box<UserModel>('users');
 
-      //Firebase collection initialization
-      CollectionReference loginCollection = FirebaseFirestore.instance.collection('login_details');
-      CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
+        CollectionReference loginCollection =
+            FirebaseFirestore.instance.collection('login_details');
+        CollectionReference usersCollection =
+            FirebaseFirestore.instance.collection('users');
 
-      await loginCollection
-          .where("enrollment",
-          isEqualTo: event.enrollmentController.text.toString())
-          .where("password", isEqualTo: event.passwordController.text.toString())
-          .get()
-          .then((value) async {
-        debugPrint ("Login Success: ${value.docs}");
-        var userId = await usersCollection
-            .where("enrollment",
-            isEqualTo: event.enrollmentController.text
-                .toString())
-            .get();
-        debugPrint("user: ${userId.size}");
-        var user = await usersCollection
-            .doc(userId.docs[0].id)
+        // Perform Firestore query to validate login credentials
+        var loginQuerySnapshot = await loginCollection
+            .where("enrollment", isEqualTo: event.enrollmentNumber)
+            .where("password", isEqualTo: event.password)
             .get();
 
-        var userDetails = UserModel.fromJson(
-            user.data() as Map<String, dynamic>);
-        await userBox.put('user', userDetails).then((value) {
-          emit(const LoginSuccessState());
+        if (loginQuerySnapshot.docs.isNotEmpty) {
+          // Fetch user details from Firestore
+          var userQuerySnapshot = await usersCollection
+              .where("enrollment", isEqualTo: event.enrollmentNumber)
+              .get();
+
+          if (userQuerySnapshot.docs.isNotEmpty) {
+            var user =
+                await usersCollection.doc(userQuerySnapshot.docs[0].id).get();
+            var userDetails =
+                UserModel.fromJson(user.data() as Map<String, dynamic>);
+
+            // Save user data in Hive local storage
+            await userBox.put('user', userDetails).then((value) {
+              emit(const LoginSuccessState());
+            });
+          } else {
+            emit(const LoginErrorState(errorMessage: "User not found"));
+          }
+        } else {
+          emit(
+              const LoginErrorState(errorMessage: "Invalid login credentials"));
+        }
+      } catch (e) {
+        emit(LoginErrorState(errorMessage: e.toString()));
+      }
+    });
+
+    // Handling Update User event
+    on<UpdateUserEvent>((event, emit) async {
+      try {
+        CollectionReference usersCollection =
+            FirebaseFirestore.instance.collection('users');
+
+        // Update the user's information in Firestore
+        await usersCollection.doc(event.userId).update({
+          'enrollment': event.newEnrollmentNumber,
+          'email': event.newEmail,
         });
-      }).catchError((e) {
-        emit(const LoginErrorState());
-      });
+
+        // Update the user's email and password in FirebaseAuth
+        User? currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser != null) {
+          await currentUser.updateEmail(event.newEmail);
+          if (event.newPassword.isNotEmpty) {
+            await currentUser.updatePassword(event.newPassword);
+          }
+        }
+
+        emit(const UpdateUserSuccessState());
+      } catch (e) {
+        emit(UpdateUserErrorState(errorMessage: e.toString()));
+      }
+    });
+
+    // Handling Forgot Password event
+    on<ForgotPasswordEvent>((event, emit) async {
+      try {
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: event.email);
+        emit(const ForgotPasswordSuccessState());
+      } catch (e) {
+        emit(ForgotPasswordErrorState(errorMessage: e.toString()));
+      }
     });
   }
 }
 
+// Define Events
 abstract class LoginEvent extends Equatable {
   const LoginEvent();
 }
 
-abstract class LoginState {
-  const LoginState();
-}
+class LoginUserEvent extends LoginEvent {
+  final String enrollmentNumber;
+  final String password;
 
-class LoginUserState extends LoginEvent {
-  final TextEditingController enrollmentController;
-  final TextEditingController passwordController;
-  const LoginUserState(this.enrollmentController, this.passwordController);
+  const LoginUserEvent(this.enrollmentNumber, this.password);
 
   @override
-  List<Object> get props => [enrollmentController, passwordController];
+  List<Object> get props => [enrollmentNumber, password];
+}
+
+class UpdateUserEvent extends LoginEvent {
+  final String userId;
+  final String newEnrollmentNumber;
+  final String newEmail;
+  final String newPassword;
+
+  const UpdateUserEvent(
+      this.userId, this.newEnrollmentNumber, this.newEmail, this.newPassword);
+
+  @override
+  List<Object> get props =>
+      [userId, newEnrollmentNumber, newEmail, newPassword];
+}
+
+class ForgotPasswordEvent extends LoginEvent {
+  final String email;
+
+  const ForgotPasswordEvent(this.email);
+
+  @override
+  List<Object> get props => [email];
+}
+
+// Define States
+abstract class LoginState {
+  const LoginState();
 }
 
 class LoginInitialState extends LoginState {
@@ -71,5 +143,27 @@ class LoginSuccessState extends LoginState {
 }
 
 class LoginErrorState extends LoginState {
-  const LoginErrorState();
+  final String errorMessage;
+
+  const LoginErrorState({this.errorMessage = "Login failed"});
+}
+
+class UpdateUserSuccessState extends LoginState {
+  const UpdateUserSuccessState();
+}
+
+class UpdateUserErrorState extends LoginState {
+  final String errorMessage;
+
+  const UpdateUserErrorState({this.errorMessage = "Update failed"});
+}
+
+class ForgotPasswordSuccessState extends LoginState {
+  const ForgotPasswordSuccessState();
+}
+
+class ForgotPasswordErrorState extends LoginState {
+  final String errorMessage;
+
+  const ForgotPasswordErrorState({this.errorMessage = "Password reset failed"});
 }

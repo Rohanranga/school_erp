@@ -22,7 +22,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Box<UserModel> userBox = Hive.box<UserModel>('users');
   CollectionReference firestore =
-  FirebaseFirestore.instance.collection('users');
+      FirebaseFirestore.instance.collection('users');
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,8 @@ class _HomeScreenState extends State<HomeScreen> {
               width: MediaQuery.of(context).size.width,
               fit: BoxFit.cover,
             ),
-            SingleChildScrollView(  // Wrapped content with SingleChildScrollView
+            SingleChildScrollView(
+              // Wrapped content with SingleChildScrollView
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -59,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             Text(
-                              "Enrollment: ${userBox.get("user")?.enrollmentNumber ?? "Null"}",
+                              "Enrollment: ${userBox.get("users")?.enrollmentNumber != null ? userBox.get("user")?.enrollmentNumber : "Null"}",
                               style: const TextStyle(
                                 color: Colors.white54,
                                 fontSize: 16.0,
@@ -124,7 +125,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               },
                               child: const HomeScreenMasterCard(
-                                  attendance: true),
+                                attendance: true,
+                                tooltext: 'Check out your attendance here ',
+                              ),
                             ),
                             GestureDetector(
                               onTap: () {
@@ -136,6 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               },
                               child: const HomeScreenMasterCard(
+                                tooltext: 'Check you fee due here ',
                                 attendance: false,
                               ),
                             ),
@@ -149,6 +153,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           spacing: 20.0,
                           children: [
                             HomeScreenSmallCard(
+                              tooltext:
+                                  'Check out your marks by tapping the button',
                               icon: Icons.collections_bookmark_rounded,
                               buttonText: "Marks",
                               onTap: () {
@@ -164,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     shape: RoundedRectangleBorder(
                                         borderRadius:
-                                        BorderRadius.circular(8.0)),
+                                            BorderRadius.circular(8.0)),
                                     closeIconColor: Colors.white,
                                     showCloseIcon: true,
                                     behavior: SnackBarBehavior.floating,
@@ -175,8 +181,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
                             HomeScreenSmallCard(
+                              tooltext: 'Submit your assignments here ',
                               icon: Icons.person,
-                              buttonText: "Assignment",
+                              buttonText: "Assignments",
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -185,6 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             HomeScreenSmallCard(
+                              tooltext: 'Feel free to ask doughts here ',
                               icon: Icons.chat,
                               buttonText: "Ask Doubts",
                               onTap: () => Navigator.push(
@@ -195,6 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             HomeScreenSmallCard(
+                              tooltext: 'Checkout all the events here ',
                               icon: Icons.edit_calendar_rounded,
                               buttonText: "Events",
                               onTap: () => Navigator.push(
@@ -204,6 +213,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             ),
+                            HomeScreenSmallCard(
+                              tooltext: 'E-Books are here ',
+                              icon: Icons.book,
+                              buttonText: "Books",
+                            )
                           ],
                         ),
                         const SizedBox(height: 20.0),

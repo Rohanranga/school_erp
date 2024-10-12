@@ -81,4 +81,9 @@ class UserModel {
     data['email'] = email ?? "";
     return data;
   }
+
+  @override
+  String toString() {
+    return 'User Model(name: $name, enrollmentNumber: $enrollmentNumber, academicYear: $academicYear, branch: $branch, dateOfBirth: $dateOfBirth, contactNumber: $contactNumber, motherName: $motherName, fatherName: $fatherName, address: $address, semester: $semester, email: $email)';
+  }
 }
