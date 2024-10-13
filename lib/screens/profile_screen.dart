@@ -1,9 +1,9 @@
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:school_erp/constants/colors.dart';
-
-import '../model/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,391 +13,369 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  //Hive Box initialization
-  Box<UserModel> userBox = Hive.box<UserModel>('users');
+  String _userName = '';
+  String _enrollmentNumber = '';
+  String _profileImageUrl = '';
+  File? _profileImage; // Profile image file
 
-  //constant colour of text field title
-  Color textFieldTitle = const Color(0xFFA5A5A5);
+  // Controllers for user input fields
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _enrollmentController = TextEditingController();
+  final TextEditingController _branchController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _contactController = TextEditingController();
+  final TextEditingController _fatherNameController = TextEditingController();
+  final TextEditingController _motherNameController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _academicController = TextEditingController();
 
-  //controllers initialization
-  TextEditingController emailController = TextEditingController();
-  TextEditingController branchController = TextEditingController();
-  TextEditingController academicYearController = TextEditingController();
-  TextEditingController dobController = TextEditingController();
-  TextEditingController contactController = TextEditingController();
-  TextEditingController fatherNameController = TextEditingController();
-  TextEditingController motherNameController = TextEditingController();
-  TextEditingController addressController = TextEditingController();
+  final ImagePicker _picker = ImagePicker(); // Image picker
+  User? _currentUser; // Firebase user
+  bool _isLoading = false; // Loading state
 
   @override
   void initState() {
-    emailController.text = userBox.get("user")?.email ?? "";
-    branchController.text = userBox.get("user")?.branch ?? "";
-    academicYearController.text = userBox.get("user")?.academicYear ?? "";
-    dobController.text = userBox.get("user")?.dateOfBirth ?? "";
-    contactController.text = userBox.get("user")?.contactNumber ?? "";
-    fatherNameController.text = userBox.get("user")?.fatherName ?? "";
-    motherNameController.text = userBox.get("user")?.motherName ?? "";
-    addressController.text = userBox.get("user")?.address ?? "";
     super.initState();
+    _fetchCurrentUser(); // Fetch the current authenticated user
+  }
+
+  @override
+  void dispose() {
+    // Dispose of the controllers
+    _nameController.dispose();
+    _enrollmentController.dispose();
+    _branchController.dispose();
+    _dobController.dispose();
+    _contactController.dispose();
+    _fatherNameController.dispose();
+    _motherNameController.dispose();
+    _addressController.dispose();
+    _academicController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchCurrentUser() async {
+    _currentUser = FirebaseAuth.instance.currentUser;
+    if (_currentUser != null) {
+      await _fetchUserData(); // Fetch user profile data from Firestore
+    }
+  }
+
+  Future<void> _fetchUserData() async {
+    if (_currentUser != null) {
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_currentUser!.uid)
+            .collection('profile_history')
+            .doc(_currentUser!.uid) // Using UID as document ID
+            .get();
+
+        if (userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>;
+
+          setState(() {
+            _userName = userData['name'] ?? 'NA';
+            _enrollmentNumber = userData['enrollmentNumber'] ?? 'Not available';
+            _profileImageUrl = userData['profileImageUrl'] ?? '';
+
+            // Populate text fields
+            _nameController.text = userData['name'] ?? '';
+            _enrollmentController.text = userData['enrollmentNumber'] ?? '';
+            _branchController.text = userData['branch'] ?? '';
+            _dobController.text = userData['dateOfBirth'] ?? '';
+            _contactController.text = userData['contactNumber'] ?? '';
+            _fatherNameController.text = userData['fatherName'] ?? '';
+            _motherNameController.text = userData['motherName'] ?? '';
+            _addressController.text = userData['address'] ?? '';
+            _academicController.text = userData['academic'] ?? '';
+          });
+        } else {
+          print("No document found for the current user.");
+        }
+      } catch (e) {
+        print("Error fetching user data: $e");
+      }
+    }
+  }
+
+  Future<void> _uploadProfileImage() async {
+    if (_profileImage == null) return;
+
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('profile_images/${_currentUser!.uid}.jpg');
+      await storageRef.putFile(_profileImage!);
+      String downloadUrl = await storageRef.getDownloadURL();
+
+      setState(() {
+        _profileImageUrl = downloadUrl; // Set the download URL
+      });
+    } catch (e) {
+      print("Error uploading profile image: $e");
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _storeUserProfile() async {
+    if (_currentUser == null) return;
+
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Upload profile image if selected
+      if (_profileImage != null) {
+        await _uploadProfileImage();
+      }
+
+      final userDocRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(_currentUser!.uid)
+          .collection('profile_history')
+          .doc(_currentUser!.uid); // Using UID as document ID
+
+      // Store updated profile data
+      await userDocRef.set({
+        'name': _nameController.text,
+        'enrollmentNumber': _enrollmentController.text,
+        'branch': _branchController.text,
+        'dateOfBirth': _dobController.text,
+        'contactNumber': _contactController.text,
+        'fatherName': _fatherNameController.text,
+        'motherName': _motherNameController.text,
+        'address': _addressController.text,
+        'academic': _academicController.text,
+        'profileImageUrl': _profileImageUrl,
+      });
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Error storing user profile: $e");
+    }
+  }
+
+  bool _validateFields() {
+    if (_nameController.text.isEmpty ||
+        _enrollmentController.text.isEmpty ||
+        _branchController.text.isEmpty ||
+        _dobController.text.isEmpty ||
+        _contactController.text.isEmpty ||
+        _fatherNameController.text.isEmpty ||
+        _motherNameController.text.isEmpty ||
+        _addressController.text.isEmpty ||
+        _academicController.text.isEmpty) {
+      return false;
+    }
+    return true;
+  }
+
+  Future<bool?> _showConfirmationDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Confirm"),
+          content: const Text("Are you sure you want to save your changes?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false); // User cancels
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true); // User confirms
+              },
+              child: const Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    InputDecoration inputDecoration = const InputDecoration(
-        focusedBorder: UnderlineInputBorder(
-      borderSide: BorderSide(color: primaryColor),
-    ));
-
-    String enrollmentNumber =
-        userBox.get("user")?.enrollmentNumber ?? "Not available";
-
     return Scaffold(
-      backgroundColor: const Color(0xFF7292CF),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Image.asset(
-              "assets/Star_Background.png",
-              width: MediaQuery.of(context).size.width,
-              fit: BoxFit.cover,
-            ),
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                      top: 20.0, left: 20.0, bottom: 10.0, right: 20.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Icon(
-                              Icons.chevron_left,
-                              size: 30,
-                              color: Colors.white,
-                            ),
-                            SizedBox(width: 5.0),
-                            Text(
-                              "My Profile",
-                              style: TextStyle(
-                                fontSize: 18.0,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
+      appBar: AppBar(
+        title: const Text("Profile"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Profile image
+              GestureDetector(
+                onTap: () async {
+                  final XFile? image =
+                      await _picker.pickImage(source: ImageSource.camera);
+                  setState(() {
+                    if (image != null) {
+                      _profileImage = File(image.path);
+                    } else {
+                      _profileImage = null;
+                    }
+                  });
+                },
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage: _profileImage != null
+                      ? Image.file(_profileImage!).image
+                      : _profileImageUrl.isNotEmpty
+                          ? NetworkImage(_profileImageUrl)
+                          : null,
+                  child: _profileImage != null
+                      ? null
+                      : _profileImageUrl.isNotEmpty
+                          ? null
+                          : Icon(Icons.add_a_photo, size: 30),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // User input fields
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _enrollmentController,
+                decoration: const InputDecoration(
+                  labelText: 'Enrollment Number',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _branchController,
+                decoration: const InputDecoration(
+                  labelText: 'Branch',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _dobController,
+                decoration: const InputDecoration(
+                  labelText: 'Date of Birth',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _contactController,
+                decoration: const InputDecoration(
+                  labelText: 'Contact Number',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _fatherNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Father\'s Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _motherNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Mother\'s Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _addressController,
+                decoration: const InputDecoration(
+                  labelText: 'Address',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _academicController,
+                decoration: const InputDecoration(
+                  labelText: 'Academic',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: GestureDetector(
+                  onTap: () async {
+                    if (_validateFields()) {
+                      // Show confirmation dialog
+                      bool? confirm = await _showConfirmationDialog();
+                      if (confirm == true) {
+                        await _storeUserProfile(); // Store user profile on save
+                        Navigator.pop(context, {
+                          'username': _nameController.text,
+                          'enrollmentNumber': _enrollmentController.text,
+                          'academicyear': _academicController.text,
+                        });
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Please fill all fields."),
                         ),
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12.0, vertical: 2.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20.0),
-                            color: Colors.white,
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(
-                                Icons.check,
-                                size: 25.0,
-                              ),
-                              SizedBox(
-                                width: 5.0,
-                              ),
-                              Text(
-                                "DONE",
-                                style: TextStyle(fontSize: 13.0),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                      );
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(
+                        left: 140,
+                        right: 140,
+                        top: 10,
+                        bottom: 10), // Add some margin around the button
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6.0, vertical: 7.0), // Reduce the padding
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                          20.0), // Reduce the border radius
+                      color: const Color.fromARGB(255, 214, 174, 222),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment
+                          .center, // Center the text horizontally
+                      children: [
+                        Icon(Icons.check, size: 18.0), // Reduce the icon size
+                        const SizedBox(
+                            width:
+                                2.0), // Reduce the space between the icon and the text
+                        Text("DONE",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight:
+                                    FontWeight.bold)), // Reduce the text size
+                      ],
+                    ),
                   ),
                 ),
-                Expanded(
-                  child: Container(
-                    // height: MediaQuery.of(context).size.height / 1.165,
-                    width: MediaQuery.of(context).size.width,
-                    margin: const EdgeInsets.only(top: 30.0),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(20.0),
-                          topLeft: Radius.circular(20.0)),
-                    ),
-                    child: SingleChildScrollView(
-                      child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: MediaQuery.of(context).size.width,
-                                padding: const EdgeInsets.all(12.0),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  border: Border.all(
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          height: 80.0,
-                                          width: 80.0,
-                                          decoration: BoxDecoration(
-                                            color: const Color.fromARGB(
-                                                255, 214, 13, 13),
-                                            borderRadius:
-                                                BorderRadius.circular(15.0),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 10.0),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              userBox.get("user")?.name ?? "NA",
-                                              style: const TextStyle(
-                                                fontSize: 20.0,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                            Text(
-                                              "Enroll: $enrollmentNumber",
-                                              style: const TextStyle(
-                                                fontSize: 12.0,
-                                                color: Color(0xFF777777),
-                                              ),
-                                            ),
-                                            Text(
-                                              "Semester: ${userBox.get("user")?.semester ?? "null"}",
-                                              style: const TextStyle(
-                                                  fontSize: 12.0,
-                                                  color: Color(0xFF777777)),
-                                            )
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    const Padding(
-                                      padding:
-                                          EdgeInsets.only(top: 4.0, right: 4.0),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.camera_outlined),
-                                        onPressed: null,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 40.0),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Contact Number",
-                                        style: TextStyle(
-                                          fontSize: 12.0,
-                                          color: textFieldTitle,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width /
-                                                2.4,
-                                        child: TextField(
-                                          cursorColor: primaryColor,
-                                          controller: contactController,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(width: 10.0),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Academic Year",
-                                        style: TextStyle(
-                                          fontSize: 12.0,
-                                          color: textFieldTitle,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width /
-                                                2.4,
-                                        child: TextField(
-                                          controller: academicYearController,
-                                          readOnly: true,
-                                          decoration: inputDecoration,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                              const SizedBox(height: 20.0),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Branch",
-                                        style: TextStyle(
-                                          fontSize: 12.0,
-                                          color: textFieldTitle,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width /
-                                                2.4,
-                                        child: TextField(
-                                          controller: branchController,
-                                          readOnly: true,
-                                          decoration: inputDecoration,
-                                          cursorColor: primaryColor,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(width: 10.0),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Date of Birth",
-                                        style: TextStyle(
-                                          fontSize: 12.0,
-                                          color: textFieldTitle,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width /
-                                                2.4,
-                                        child: TextField(
-                                          controller: dobController,
-                                          readOnly: true,
-                                          decoration: inputDecoration,
-                                          cursorColor: primaryColor,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20.0),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Email ID",
-                                    style: TextStyle(
-                                      fontSize: 12.0,
-                                      color: textFieldTitle,
-                                    ),
-                                  ),
-                                  TextField(
-                                    controller: emailController,
-                                    decoration: inputDecoration,
-                                    cursorColor: primaryColor,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20.0),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Mother Name",
-                                    style: TextStyle(
-                                      fontSize: 12.0,
-                                      color: textFieldTitle,
-                                    ),
-                                  ),
-                                  TextField(
-                                    controller: motherNameController,
-                                    decoration: inputDecoration,
-                                    cursorColor: primaryColor,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20.0),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Father Name",
-                                    style: TextStyle(
-                                      fontSize: 12.0,
-                                      color: textFieldTitle,
-                                    ),
-                                  ),
-                                  TextField(
-                                    controller: fatherNameController,
-                                    decoration: inputDecoration,
-                                    cursorColor: primaryColor,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20.0),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Permanent Address",
-                                    style: TextStyle(
-                                      fontSize: 12.0,
-                                      color: textFieldTitle,
-                                    ),
-                                  ),
-                                  TextField(
-                                    controller: addressController,
-                                    decoration: inputDecoration,
-                                    cursorColor: primaryColor,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          )),
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ],
+              ),
+              // Save button
+            ],
+          ),
         ),
       ),
     );

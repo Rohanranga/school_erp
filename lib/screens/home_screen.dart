@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:school_erp/screens/ask_doubt_screen.dart';
@@ -20,9 +21,46 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Box<UserModel> userBox = Hive.box<UserModel>('users');
-  CollectionReference firestore =
-      FirebaseFirestore.instance.collection('users');
+  String username = '';
+  String enrollmentNumber = '';
+  String academicyear = '';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserData();
+  }
+
+  void fetchUserData() async {
+    try {
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+
+        if (userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>;
+
+          setState(() {
+            username = userData['username'] ??
+                ''; // Get user's username from Firestore
+            enrollmentNumber = userData['enrollmentNumber'] ??
+                ''; // Get user's enrollment number from Firestore
+            academicyear = userData['academicyear'] ??
+                ''; // Get user's academicyear from Firestore
+          });
+        } else {
+          print('No user data found');
+        }
+      } else {
+        print('No current user');
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Hi ${userBox.get("user")?.name?.split(" ")[0] ?? "Student"}",
+                              "Hi,$username",
                               style: const TextStyle(
                                 fontSize: 30.0,
                                 fontWeight: FontWeight.w400,
@@ -60,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             Text(
-                              "Enrollment: ${userBox.get("users")?.enrollmentNumber != null ? userBox.get("user")?.enrollmentNumber : "Null"}",
+                              "EnrollmentNumber :$enrollmentNumber",
                               style: const TextStyle(
                                 color: Colors.white54,
                                 fontSize: 16.0,
@@ -77,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderRadius: BorderRadius.circular(20.0),
                               ),
                               child: Text(
-                                userBox.get("user")?.academicYear ?? "Null",
+                                "Academicyear:$academicyear",
                                 style: const TextStyle(
                                   color: Color(0xFF6184C7),
                                   fontSize: 14.0,
