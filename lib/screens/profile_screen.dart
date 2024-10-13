@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -13,68 +13,82 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String userName = '';
-  String enrollmentNumber = '';
-  String profileImageUrl = '';
+  String _userName = '';
+  String _enrollmentNumber = '';
+  String _profileImageUrl = '';
   File? _profileImage; // Profile image file
 
   // Controllers for user input fields
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController enrollmentController = TextEditingController();
-  final TextEditingController branchController = TextEditingController();
-  final TextEditingController dobController = TextEditingController();
-  final TextEditingController contactController = TextEditingController();
-  final TextEditingController fatherNameController = TextEditingController();
-  final TextEditingController motherNameController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
-  final TextEditingController academicController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _enrollmentController = TextEditingController();
+  final TextEditingController _branchController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _contactController = TextEditingController();
+  final TextEditingController _fatherNameController = TextEditingController();
+  final TextEditingController _motherNameController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _academicController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker(); // Image picker
-  User? currentUser; // Firebase user
-  bool isLoading = false; // Loading state
+  User? _currentUser; // Firebase user
+  bool _isLoading = false; // Loading state
 
   @override
   void initState() {
     super.initState();
-    fetchCurrentUser(); // Fetch the current authenticated user
+    _fetchCurrentUser(); // Fetch the current authenticated user
   }
 
-  Future<void> fetchCurrentUser() async {
-    currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      await fetchUserData(); // Fetch user profile data from Firestore
+  @override
+  void dispose() {
+    // Dispose of the controllers
+    _nameController.dispose();
+    _enrollmentController.dispose();
+    _branchController.dispose();
+    _dobController.dispose();
+    _contactController.dispose();
+    _fatherNameController.dispose();
+    _motherNameController.dispose();
+    _addressController.dispose();
+    _academicController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchCurrentUser() async {
+    _currentUser = FirebaseAuth.instance.currentUser;
+    if (_currentUser != null) {
+      await _fetchUserData(); // Fetch user profile data from Firestore
     }
   }
 
-  Future<void> fetchUserData() async {
-    if (currentUser != null) {
+  Future<void> _fetchUserData() async {
+    if (_currentUser != null) {
       try {
-        // Reference to the user's profile document in Firestore
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection('users')
-            .doc(currentUser!.uid)
+            .doc(_currentUser!.uid)
             .collection('profile_history')
-            .doc(currentUser!.uid) // Using UID as document ID
+            .doc(_currentUser!.uid) // Using UID as document ID
             .get();
 
         if (userDoc.exists) {
           final userData = userDoc.data() as Map<String, dynamic>;
 
           setState(() {
-            userName = userData['name'] ?? 'NA';
-            enrollmentNumber = userData['enrollmentNumber'] ?? 'Not available';
-            profileImageUrl = userData['profileImageUrl'] ?? '';
+            _userName = userData['name'] ?? 'NA';
+            _enrollmentNumber = userData['enrollmentNumber'] ?? 'Not available';
+            _profileImageUrl = userData['profileImageUrl'] ?? '';
 
             // Populate text fields
-            nameController.text = userData['name'] ?? '';
-            enrollmentController.text = userData['enrollmentNumber'] ?? '';
-            branchController.text = userData['branch'] ?? '';
-            dobController.text = userData['dateOfBirth'] ?? '';
-            contactController.text = userData['contactNumber'] ?? '';
-            fatherNameController.text = userData['fatherName'] ?? '';
-            motherNameController.text = userData['motherName'] ?? '';
-            addressController.text = userData['address'] ?? '';
-            academicController.text = userData['academic'] ?? '';
+            _nameController.text = userData['name'] ?? '';
+            _enrollmentController.text = userData['enrollmentNumber'] ?? '';
+            _branchController.text = userData['branch'] ?? '';
+            _dobController.text = userData['dateOfBirth'] ?? '';
+            _contactController.text = userData['contactNumber'] ?? '';
+            _fatherNameController.text = userData['fatherName'] ?? '';
+            _motherNameController.text = userData['motherName'] ?? '';
+            _addressController.text = userData['address'] ?? '';
+            _academicController.text = userData['academic'] ?? '';
           });
         } else {
           print("No document found for the current user.");
@@ -85,250 +99,284 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> uploadProfileImage() async {
+  Future<void> _uploadProfileImage() async {
     if (_profileImage == null) return;
 
     try {
       setState(() {
-        isLoading = true;
+        _isLoading = true;
       });
 
       final storageRef = FirebaseStorage.instance
           .ref()
-          .child('profile_images/${currentUser!.uid}.jpg');
+          .child('profile_images/${_currentUser!.uid}.jpg');
       await storageRef.putFile(_profileImage!);
       String downloadUrl = await storageRef.getDownloadURL();
 
       setState(() {
-        profileImageUrl = downloadUrl; // Set the download URL
+        _profileImageUrl = downloadUrl; // Set the download URL
       });
     } catch (e) {
       print("Error uploading profile image: $e");
     } finally {
       setState(() {
-        isLoading = false;
+        _isLoading = false;
       });
     }
   }
 
-  Future<void> storeUserProfile() async {
-    if (currentUser == null) return;
+  Future<void> _storeUserProfile() async {
+    if (_currentUser == null) return;
 
     try {
       setState(() {
-        isLoading = true;
+        _isLoading = true;
       });
 
       // Upload profile image if selected
       if (_profileImage != null) {
-        await uploadProfileImage();
+        await _uploadProfileImage();
       }
 
       final userDocRef = FirebaseFirestore.instance
           .collection('users')
-          .doc(currentUser!.uid)
+          .doc(_currentUser!.uid)
           .collection('profile_history')
-          .doc(currentUser!.uid); // Using UID as document ID
+          .doc(_currentUser!.uid); // Using UID as document ID
 
       // Store updated profile data
       await userDocRef.set({
-        'name': nameController.text,
-        'enrollmentNumber': enrollmentController.text,
-        'branch': branchController.text,
-        'dateOfBirth': dobController.text,
-        'contactNumber': contactController.text,
-        'fatherName': fatherNameController.text,
-        'motherName': motherNameController.text,
-        'address': addressController.text,
-        'profileImageUrl': profileImageUrl,
-        'academicyear': academicController,
-        'created_at': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true)); // Merge to update existing fields
+        'name': _nameController.text,
+        'enrollmentNumber': _enrollmentController.text,
+        'branch': _branchController.text,
+        'dateOfBirth': _dobController.text,
+        'contactNumber': _contactController.text,
+        'fatherName': _fatherNameController.text,
+        'motherName': _motherNameController.text,
+        'address': _addressController.text,
+        'academic': _academicController.text,
+        'profileImageUrl': _profileImageUrl,
+      });
 
-      // Show confirmation message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profile updated successfully!")),
-      );
+      setState(() {
+        _isLoading = false;
+      });
     } catch (e) {
       print("Error storing user profile: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("Error updating profile. Please try again.")),
-      );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
 
-  Future<void> selectImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
+  bool _validateFields() {
+    if (_nameController.text.isEmpty ||
+        _enrollmentController.text.isEmpty ||
+        _branchController.text.isEmpty ||
+        _dobController.text.isEmpty ||
+        _contactController.text.isEmpty ||
+        _fatherNameController.text.isEmpty ||
+        _motherNameController.text.isEmpty ||
+        _addressController.text.isEmpty ||
+        _academicController.text.isEmpty) {
+      return false;
     }
+    return true;
   }
 
-  bool validateFields() {
-    return nameController.text.isNotEmpty &&
-        enrollmentController.text.isNotEmpty &&
-        branchController.text.isNotEmpty &&
-        dobController.text.isNotEmpty &&
-        contactController.text.isNotEmpty &&
-        fatherNameController.text.isNotEmpty &&
-        motherNameController.text.isNotEmpty &&
-        addressController.text.isNotEmpty;
+  Future<bool?> _showConfirmationDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Confirm"),
+          content: const Text("Are you sure you want to save your changes?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false); // User cancels
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true); // User confirms
+              },
+              child: const Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF7292CF),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Image.asset(
-              "assets/Star_Background.png",
-              width: MediaQuery.of(context).size.width,
-              fit: BoxFit.cover,
-            ),
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                      top: 20.0, left: 20.0, bottom: 10.0, right: 20.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Icon(Icons.chevron_left,
-                                size: 30, color: Colors.white),
-                            SizedBox(width: 5.0),
-                            Text("My Profile",
-                                style: TextStyle(
-                                    fontSize: 18.0, color: Colors.white)),
-                          ],
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          if (validateFields()) {
-                            await storeUserProfile(); // Store user profile on save
-                            Navigator.pop(context, {
-                              'name': nameController.text,
-                              'enrollmentNumber': enrollmentController.text,
-                              'academicyear': academicController,
-                            });
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text("Please fill all fields.")),
-                            );
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12.0, vertical: 2.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20.0),
-                            color: Colors.white,
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.check, size: 25.0),
-                              SizedBox(width: 5.0),
-                              Text("DONE", style: TextStyle(fontSize: 13.0)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    margin: const EdgeInsets.only(top: 30.0),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(20.0),
-                          topLeft: Radius.circular(20.0)),
-                    ),
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          children: [
-                            GestureDetector(
-                              onTap: selectImage, // Trigger image selection
-                              child: CircleAvatar(
-                                radius: 60,
-                                backgroundImage: _profileImage != null
-                                    ? FileImage(_profileImage!)
-                                    : (profileImageUrl.isNotEmpty
-                                        ? NetworkImage(profileImageUrl)
-                                            as ImageProvider
-                                        : const AssetImage(
-                                            'assets/avatar_placeholder.png')),
-                              ),
-                            ),
-                            const SizedBox(height: 15),
-                            buildTextField("Name", nameController),
-                            const SizedBox(height: 15),
-                            buildTextField(
-                                "Enrollment Number", enrollmentController),
-                            const SizedBox(height: 15),
-                            buildTextField(
-                                "Contact Number", academicController),
-                            const SizedBox(height: 15),
-                            buildTextField("Branch", branchController),
-                            const SizedBox(height: 15),
-                            buildTextField("Date of Birth", dobController),
-                            const SizedBox(height: 15),
-                            buildTextField("Contact Number", contactController),
-                            const SizedBox(height: 15),
-                            buildTextField(
-                                "Father's Name", fatherNameController),
-                            const SizedBox(height: 15),
-                            buildTextField(
-                                "Mother's Name", motherNameController),
-                            const SizedBox(height: 15),
-                            buildTextField("Address", addressController),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (isLoading)
-              const Center(
-                  child:
-                      CircularProgressIndicator()), // Show loading spinner when saving or uploading
-          ],
-        ),
+      appBar: AppBar(
+        title: const Text("Profile"),
       ),
-    );
-  }
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Profile image
+              GestureDetector(
+                onTap: () async {
+                  final XFile? image =
+                      await _picker.pickImage(source: ImageSource.camera);
+                  setState(() {
+                    if (image != null) {
+                      _profileImage = File(image.path);
+                    } else {
+                      _profileImage = null;
+                    }
+                  });
+                },
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage: _profileImage != null
+                      ? Image.file(_profileImage!).image
+                      : _profileImageUrl.isNotEmpty
+                          ? NetworkImage(_profileImageUrl)
+                          : null,
+                  child: _profileImage != null
+                      ? null
+                      : _profileImageUrl.isNotEmpty
+                          ? null
+                          : Icon(Icons.add_a_photo, size: 30),
+                ),
+              ),
+              const SizedBox(height: 20),
 
-  // Reusable text field builder
-  Widget buildTextField(String label, TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+              // User input fields
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _enrollmentController,
+                decoration: const InputDecoration(
+                  labelText: 'Enrollment Number',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _branchController,
+                decoration: const InputDecoration(
+                  labelText: 'Branch',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _dobController,
+                decoration: const InputDecoration(
+                  labelText: 'Date of Birth',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _contactController,
+                decoration: const InputDecoration(
+                  labelText: 'Contact Number',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _fatherNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Father\'s Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _motherNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Mother\'s Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _addressController,
+                decoration: const InputDecoration(
+                  labelText: 'Address',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _academicController,
+                decoration: const InputDecoration(
+                  labelText: 'Academic',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: GestureDetector(
+                  onTap: () async {
+                    if (_validateFields()) {
+                      // Show confirmation dialog
+                      bool? confirm = await _showConfirmationDialog();
+                      if (confirm == true) {
+                        await _storeUserProfile(); // Store user profile on save
+                        Navigator.pop(context, {
+                          'username': _nameController.text,
+                          'enrollmentNumber': _enrollmentController.text,
+                          'academicyear': _academicController.text,
+                        });
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Please fill all fields."),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(
+                        left: 140,
+                        right: 140,
+                        top: 10,
+                        bottom: 10), // Add some margin around the button
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6.0, vertical: 7.0), // Reduce the padding
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                          20.0), // Reduce the border radius
+                      color: const Color.fromARGB(255, 214, 174, 222),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment
+                          .center, // Center the text horizontally
+                      children: [
+                        Icon(Icons.check, size: 18.0), // Reduce the icon size
+                        const SizedBox(
+                            width:
+                                2.0), // Reduce the space between the icon and the text
+                        Text("DONE",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight:
+                                    FontWeight.bold)), // Reduce the text size
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Save button
+            ],
+          ),
+        ),
       ),
     );
   }
