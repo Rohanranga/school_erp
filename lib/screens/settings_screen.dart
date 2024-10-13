@@ -1,9 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:school_erp/constants/colors.dart';
 import 'package:school_erp/screens/change_password_screen.dart';
 import 'package:school_erp/screens/profile_screen.dart';
-
 import '../model/user_model.dart';
 import '../reusable_widgets/loader.dart';
 import 'login_screen.dart';
@@ -16,6 +17,49 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  String _username = '';
+  String _enrollmentNumber = '';
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  void _fetchUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      if (userDoc.exists) {
+        final userData = userDoc.data() as Map<String, dynamic>;
+
+        setState(() {
+          _username = userData['name'] ?? ''; // Get user's name from Firestore
+          _enrollmentNumber = userData['enrollmentNumber'] ??
+              ''; // Get user's enrollment number from Firestore
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Box<UserModel> userBox = Hive.box<UserModel>('users');
@@ -34,35 +78,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: Column(
         children: [
-          const Divider(
-            height: 1.0,
-            thickness: 1.0,
-          ),
+          const Divider(height: 1.0, thickness: 1.0),
           const SizedBox(height: 20.0),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
               children: [
-                const Row(
+                Row(
                   children: [
-                    CircleAvatar(
+                    const CircleAvatar(
                       radius: 35,
                     ),
-                    SizedBox(width: 20.0),
+                    const SizedBox(width: 20.0),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Akarsh Puranik",
-                          style: TextStyle(
+                          _username, // Display username
+                          style: const TextStyle(
                             fontSize: 20.0,
                             fontWeight: FontWeight.w500,
                             color: Colors.black,
                           ),
                         ),
                         Text(
-                          "21100BTCSAII09392",
-                          style: TextStyle(
+                          _enrollmentNumber, // Display enrollment number
+                          style: const TextStyle(
                             fontSize: 13.0,
                             color: Colors.black45,
                           ),
@@ -93,20 +134,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 5.0),
-                const Divider(
-                  thickness: 1.0,
-                  height: 1.0,
-                ),
+                const Divider(thickness: 1.0, height: 1.0),
                 const SizedBox(height: 10.0),
                 SettingsOption(
                   optionName: "Edit Profile",
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const ProfileScreen(),
                       ),
                     );
+
+                    // If the result is not null, update the username and enrollment number
+                    if (result != null) {
+                      setState(() {
+                        _username = result['name'];
+                        _enrollmentNumber = result['enrollmentNumber'];
+                      });
+                    }
                   },
                 ),
                 SettingsOption(
@@ -140,14 +186,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             TextButton(
                               child: const Text("Logout"),
                               onPressed: () {
-                                //loading dialog
                                 showDialog(
                                   context: context,
                                   builder: (BuildContext context) =>
                                       const LoaderDialog(),
                                 );
 
-                                //clears user data from hive box
                                 userBox.clear().then(
                                       (value) => Navigator.pushAndRemoveUntil(
                                         context,
@@ -187,10 +231,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 5.0),
-                const Divider(
-                  thickness: 1.0,
-                  height: 1.0,
-                ),
+                const Divider(thickness: 1.0, height: 1.0),
                 const SizedBox(height: 10.0),
                 SettingsOption(
                   optionName: "About Us",
@@ -206,7 +247,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0)),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
                         closeIconColor: Colors.white,
                         showCloseIcon: true,
                         behavior: SnackBarBehavior.floating,
@@ -229,7 +271,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0)),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
                         closeIconColor: Colors.white,
                         showCloseIcon: true,
                         behavior: SnackBarBehavior.floating,
@@ -251,8 +294,11 @@ class SettingsOption extends StatelessWidget {
   final String optionName;
   final VoidCallback onTap;
 
-  const SettingsOption(
-      {super.key, required this.optionName, required this.onTap});
+  const SettingsOption({
+    super.key,
+    required this.optionName,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -271,7 +317,7 @@ class SettingsOption extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            Icon(
+            const Icon(
               Icons.chevron_right,
               size: 24.0,
             ),
