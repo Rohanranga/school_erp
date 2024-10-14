@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
+import 'package:school_erp/screens/home_screen.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -197,7 +199,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(true); // User confirms
+                Navigator.of(context).pop(true);
+                Navigator.pushReplacementNamed(
+                    context, '/home'); // User confirms
               },
               child: const Text("Confirm"),
             ),
@@ -221,15 +225,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Profile image
               GestureDetector(
                 onTap: () async {
-                  final XFile? image =
-                      await _picker.pickImage(source: ImageSource.camera);
-                  setState(() {
-                    if (image != null) {
-                      _profileImage = File(image.path);
-                    } else {
-                      _profileImage = null;
-                    }
-                  });
+                  final ImageSource? source = await showDialog<ImageSource>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text("Select Image Source"),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(ImageSource.camera);
+                            },
+                            child: const Text("Camera"),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(ImageSource.gallery);
+                            },
+                            child: const Text("Gallery"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (source != null) {
+                    final XFile? image =
+                        await _picker.pickImage(source: source);
+                    setState(() {
+                      if (image != null) {
+                        _profileImage = File(image.path);
+                      } else {
+                        _profileImage = null;
+                      }
+                    });
+                  }
                 },
                 child: CircleAvatar(
                   radius: 50,

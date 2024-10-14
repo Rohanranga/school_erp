@@ -24,42 +24,33 @@ class _HomeScreenState extends State<HomeScreen> {
   String username = '';
   String enrollmentNumber = '';
   String academicyear = '';
+  String _profileImageUrl = '';
+
+  Future<void> _fetchUserProfile() async {
+    final userDocRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('profile_history')
+        .doc(FirebaseAuth.instance.currentUser!.uid);
+
+    final userDoc = await userDocRef.get();
+
+    if (userDoc.exists) {
+      final userData = userDoc.data() as Map<String, dynamic>;
+
+      setState(() {
+        _profileImageUrl = userData['profileImageUrl'];
+        username = userData['name'];
+        enrollmentNumber = userData['enrollmentNumber'];
+        academicyear = userData['academic'];
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    fetchUserData();
-  }
-
-  void fetchUserData() async {
-    try {
-      final User? currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        final DocumentSnapshot userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.uid)
-            .get();
-
-        if (userDoc.exists) {
-          final userData = userDoc.data() as Map<String, dynamic>;
-
-          setState(() {
-            username = userData['username'] ??
-                ''; // Get user's username from Firestore
-            enrollmentNumber = userData['enrollmentNumber'] ??
-                ''; // Get user's enrollment number from Firestore
-            academicyear = userData['academicyear'] ??
-                ''; // Get user's academicyear from Firestore
-          });
-        } else {
-          print('No user data found');
-        }
-      } else {
-        print('No current user');
-      }
-    } catch (e) {
-      print('Error fetching user data: $e');
-    }
+    _fetchUserProfile();
   }
 
   @override
@@ -134,12 +125,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           },
-                          child: const CircleAvatar(
-                            radius: 30.0,
-                            child: Icon(
-                              Icons.person,
-                              size: 40,
-                            ),
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundImage: _profileImageUrl.isNotEmpty
+                                ? NetworkImage(_profileImageUrl)
+                                : null,
                           ),
                         )
                       ],

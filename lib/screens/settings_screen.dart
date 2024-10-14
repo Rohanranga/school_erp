@@ -17,47 +17,37 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  String _username = '';
-  String _enrollmentNumber = '';
-  bool _isLoading = false;
+  String username = '';
+  String enrollmentNumber = '';
+  bool isLoading = false;
+  String academicyear = '';
+  String _profileImageUrl = '';
+
+  Future<void> _fetchUserData() async {
+    final userDocRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('profile_history')
+        .doc(FirebaseAuth.instance.currentUser!.uid);
+
+    final userDoc = await userDocRef.get();
+
+    if (userDoc.exists) {
+      final userData = userDoc.data() as Map<String, dynamic>;
+
+      setState(() {
+        _profileImageUrl = userData['profileImageUrl'];
+        username = userData['name'];
+        enrollmentNumber = userData['enrollmentNumber'];
+        academicyear = userData['academic'];
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _fetchUserData();
-  }
-
-  void _fetchUserData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    final User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      final DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUser.uid)
-          .get();
-
-      if (userDoc.exists) {
-        final userData = userDoc.data() as Map<String, dynamic>;
-
-        setState(() {
-          _username = userData['name'] ?? ''; // Get user's name from Firestore
-          _enrollmentNumber = userData['enrollmentNumber'] ??
-              ''; // Get user's enrollment number from Firestore
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -86,15 +76,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Row(
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 35,
+                      backgroundImage: _profileImageUrl.isNotEmpty
+                          ? NetworkImage(_profileImageUrl)
+                          : null,
                     ),
                     const SizedBox(width: 20.0),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _username, // Display username
+                          username, // Display username
                           style: const TextStyle(
                             fontSize: 20.0,
                             fontWeight: FontWeight.w500,
@@ -102,7 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                         Text(
-                          _enrollmentNumber, // Display enrollment number
+                          enrollmentNumber, // Display enrollment number
                           style: const TextStyle(
                             fontSize: 13.0,
                             color: Colors.black45,
@@ -149,8 +142,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     // If the result is not null, update the username and enrollment number
                     if (result != null) {
                       setState(() {
-                        _username = result['name'];
-                        _enrollmentNumber = result['enrollmentNumber'];
+                        username = result['name'];
+                        enrollmentNumber = result['enrollmentNumber'];
                       });
                     }
                   },
