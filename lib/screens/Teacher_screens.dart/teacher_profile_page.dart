@@ -17,7 +17,8 @@ class _TeacherProfilePageState extends State<TeacherProfilePage> {
   String _userName = '';
   String _enrollmentNumber = '';
   String _profileImageUrl = '';
-  File? _profileImage; // Profile image file
+  File? _profileImage;
+  String _email = ''; // Profile image file
 
   // Controllers for user input fields
   final TextEditingController _nameController = TextEditingController();
@@ -76,6 +77,7 @@ class _TeacherProfilePageState extends State<TeacherProfilePage> {
           setState(() {
             _userName = userData['name'] ?? 'NA';
             _profileImageUrl = userData['profileImageUrl'] ?? '';
+            _email = userData['email'] ?? '';
 
             // Populate text fields
             _nameController.text = userData['name'] ?? '';
@@ -325,7 +327,6 @@ class _TeacherProfilePageState extends State<TeacherProfilePage> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 10),
               const SizedBox(height: 10),
               TextFormField(
                 controller: _addressController,
