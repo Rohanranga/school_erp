@@ -23,13 +23,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Controllers for user input fields
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _enrollmentController = TextEditingController();
-  final TextEditingController _branchController = TextEditingController();
+  final TextEditingController _sectionController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
   final TextEditingController _fatherNameController = TextEditingController();
   final TextEditingController _motherNameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _academicController = TextEditingController();
+  final TextEditingController _classController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker(); // Image picker
   User? _currentUser; // Firebase user
@@ -46,13 +46,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Dispose of the controllers
     _nameController.dispose();
     _enrollmentController.dispose();
-    _branchController.dispose();
+    _sectionController.dispose();
     _dobController.dispose();
     _contactController.dispose();
     _fatherNameController.dispose();
     _motherNameController.dispose();
     _addressController.dispose();
-    _academicController.dispose();
+    _classController.dispose();
     super.dispose();
   }
 
@@ -84,13 +84,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Populate text fields
             _nameController.text = userData['name'] ?? '';
             _enrollmentController.text = userData['enrollmentNumber'] ?? '';
-            _branchController.text = userData['branch'] ?? '';
+            _sectionController.text = userData['section'] ?? '';
             _dobController.text = userData['dateOfBirth'] ?? '';
             _contactController.text = userData['contactNumber'] ?? '';
             _fatherNameController.text = userData['fatherName'] ?? '';
             _motherNameController.text = userData['motherName'] ?? '';
             _addressController.text = userData['address'] ?? '';
-            _academicController.text = userData['academic'] ?? '';
+            _classController.text = userData['class'] ?? '';
           });
         } else {
           print("No document found for the current user.");
@@ -150,13 +150,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await userDocRef.set({
         'name': _nameController.text,
         'enrollmentNumber': _enrollmentController.text,
-        'branch': _branchController.text,
+        'section': _sectionController.text,
         'dateOfBirth': _dobController.text,
         'contactNumber': _contactController.text,
         'fatherName': _fatherNameController.text,
         'motherName': _motherNameController.text,
         'address': _addressController.text,
-        'academic': _academicController.text,
+        'class': _classController.text,
         'profileImageUrl': _profileImageUrl,
       });
 
@@ -171,13 +171,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _validateFields() {
     if (_nameController.text.isEmpty ||
         _enrollmentController.text.isEmpty ||
-        _branchController.text.isEmpty ||
+        _sectionController.text.isEmpty ||
         _dobController.text.isEmpty ||
         _contactController.text.isEmpty ||
         _fatherNameController.text.isEmpty ||
         _motherNameController.text.isEmpty ||
         _addressController.text.isEmpty ||
-        _academicController.text.isEmpty) {
+        _classController.text.isEmpty) {
       return false;
     }
     return true;
@@ -294,9 +294,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 10),
               TextFormField(
-                controller: _branchController,
+                controller: _classController,
                 decoration: const InputDecoration(
-                  labelText: 'Branch',
+                  labelText: 'class',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _sectionController,
+                decoration: const InputDecoration(
+                  labelText: 'section',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -340,14 +348,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _academicController,
-                decoration: const InputDecoration(
-                  labelText: 'Academic',
-                  border: OutlineInputBorder(),
-                ),
-              ),
               const SizedBox(height: 20),
               Center(
                 child: GestureDetector(
@@ -360,7 +360,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Navigator.pop(context, {
                           'username': _nameController.text,
                           'enrollmentNumber': _enrollmentController.text,
-                          'academicyear': _academicController.text,
+                          'classyear': _classController.text,
                         });
                       }
                     } else {

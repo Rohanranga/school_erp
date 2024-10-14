@@ -12,10 +12,10 @@ class UserModel {
   String? enrollmentNumber;
 
   @HiveField(2)
-  String? academicYear;
+  String? classYear;
 
   @HiveField(3)
-  String? branch;
+  String? section;
 
   @HiveField(4)
   String? dateOfBirth;
@@ -41,8 +41,8 @@ class UserModel {
   UserModel(
     this.name,
     this.enrollmentNumber,
-    this.academicYear,
-    this.branch,
+    this.classYear,
+    this.section,
     this.dateOfBirth,
     this.contactNumber,
     this.motherName,
@@ -55,8 +55,8 @@ class UserModel {
   UserModel.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     enrollmentNumber = json['enrollment'];
-    academicYear = json['academic_year'];
-    branch = json['branch'];
+    classYear = json['class_year'];
+    section = json['section'];
     dateOfBirth = json['dob'];
     contactNumber = json['contact_number'];
     motherName = json['mother_name'];
@@ -70,8 +70,8 @@ class UserModel {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['name'] = name ?? "";
     data['enrollment'] = enrollmentNumber ?? "";
-    data['academic_year'] = academicYear ?? "";
-    data['branch'] = branch ?? "";
+    data['class_year'] = classYear ?? "";
+    data['section'] = section ?? "";
     data['dob'] = dateOfBirth ?? "";
     data['contact_number'] = contactNumber ?? "";
     data['mother_name'] = motherName ?? "";
@@ -84,6 +84,6 @@ class UserModel {
 
   @override
   String toString() {
-    return 'User Model(name: $name, enrollmentNumber: $enrollmentNumber, academicYear: $academicYear, branch: $branch, dateOfBirth: $dateOfBirth, contactNumber: $contactNumber, motherName: $motherName, fatherName: $fatherName, address: $address, semester: $semester, email: $email)';
+    return 'User Model(name: $name, enrollmentNumber: $enrollmentNumber, classYear: $classYear, section: $section, dateOfBirth: $dateOfBirth, contactNumber: $contactNumber, motherName: $motherName, fatherName: $fatherName, address: $address, semester: $semester, email: $email)';
   }
 }

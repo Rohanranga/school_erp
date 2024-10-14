@@ -8,6 +8,8 @@ import 'package:school_erp/model/user_model.dart';
 import 'package:school_erp/screens/home_screen.dart';
 import 'package:school_erp/screens/login_screen.dart';
 import 'package:school_erp/screens/splash_screen.dart';
+import 'package:school_erp/screens/Teacher_screens.dart/teacher_signin.dart';
+import 'package:school_erp/screens/user_screen.dart';
 
 void main() async {
   await Hive.initFlutter();

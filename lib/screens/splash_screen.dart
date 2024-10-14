@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:school_erp/components/plain_background.dart';
+import 'package:school_erp/screens/user_screen.dart';
 
 import '../model/user_model.dart';
 import 'home_screen.dart';
@@ -20,7 +21,12 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     Future.delayed(const Duration(seconds: 5), () {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => userBox.values.isNotEmpty ? const HomeScreen() : const LoginScreen()));
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (_) => userBox.values.isNotEmpty
+                  ? const HomeScreen()
+                  : const UserScreen()));
     });
     super.initState();
   }

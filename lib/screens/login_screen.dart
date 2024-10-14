@@ -5,6 +5,7 @@ import 'package:school_erp/components/plain_background.dart';
 import 'package:school_erp/components/textfield.dart';
 import 'package:school_erp/screens/home_screen.dart';
 import 'package:school_erp/screens/events/signup_screen.dart';
+import 'package:school_erp/screens/Teacher_screens.dart/teacher_signin.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);

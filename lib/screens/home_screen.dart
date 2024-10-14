@@ -23,7 +23,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String username = '';
   String enrollmentNumber = '';
-  String academicyear = '';
+  String classyear = '';
   String _profileImageUrl = '';
 
   Future<void> _fetchUserProfile() async {
@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _profileImageUrl = userData['profileImageUrl'];
         username = userData['name'];
         enrollmentNumber = userData['enrollmentNumber'];
-        academicyear = userData['academic'];
+        classyear = userData['class'];
       });
     }
   }
@@ -89,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             Text(
-                              "EnrollmentNumber :$enrollmentNumber",
+                              "$enrollmentNumber",
                               style: const TextStyle(
                                 color: Colors.white54,
                                 fontSize: 16.0,
@@ -106,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderRadius: BorderRadius.circular(20.0),
                               ),
                               child: Text(
-                                "Academicyear:$academicyear",
+                                "classyear:$classyear",
                                 style: const TextStyle(
                                   color: Color(0xFF6184C7),
                                   fontSize: 14.0,

@@ -53,7 +53,7 @@ class _AskDoubtScreenState extends State<AskDoubtScreen> {
   Future<void> fetchSubjects() async {
     await syllabusCollection
         .where("semester", isEqualTo: userBox.get("user")?.semester)
-        .where("branch", isEqualTo: userBox.get("user")?.branch)
+        .where("section", isEqualTo: userBox.get("user")?.section)
         .get()
         .then((value) => value.docs.forEach((element) {
               setState(() {
@@ -214,8 +214,7 @@ class _AskDoubtScreenState extends State<AskDoubtScreen> {
                                       selectedSubject = newValue;
                                     });
                                   }),
-                              if (subjectError)
-                                const RequiredText(),
+                              if (subjectError) const RequiredText(),
                               const SizedBox(height: 30.0),
                               const CommonTitle(
                                 title: "Title",
@@ -225,8 +224,7 @@ class _AskDoubtScreenState extends State<AskDoubtScreen> {
                                 controller: titleController,
                                 textInputAction: TextInputAction.next,
                               ),
-                              if (titleError)
-                                const RequiredText(),
+                              if (titleError) const RequiredText(),
                               const SizedBox(height: 30.0),
                               const CommonTitle(
                                 title: "Description",
@@ -236,8 +234,7 @@ class _AskDoubtScreenState extends State<AskDoubtScreen> {
                                 controller: descriptionController,
                                 textInputAction: TextInputAction.done,
                               ),
-                              if (descriptionError)
-                                const RequiredText(),
+                              if (descriptionError) const RequiredText(),
                               const SizedBox(height: 40.0),
                               SubmitButton(
                                   buttonText: "SEND",

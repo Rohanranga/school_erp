@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:school_erp/constants/colors.dart';
 import 'package:school_erp/screens/change_password_screen.dart';
 import 'package:school_erp/screens/profile_screen.dart';
+import 'package:school_erp/screens/user_screen.dart';
 import '../model/user_model.dart';
 import '../reusable_widgets/loader.dart';
 import 'login_screen.dart';
@@ -20,7 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String username = '';
   String enrollmentNumber = '';
   bool isLoading = false;
-  String academicyear = '';
+  String classyear = '';
   String _profileImageUrl = '';
 
   Future<void> _fetchUserData() async {
@@ -39,7 +40,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _profileImageUrl = userData['profileImageUrl'];
         username = userData['name'];
         enrollmentNumber = userData['enrollmentNumber'];
-        academicyear = userData['academic'];
+        classyear = userData['class'];
       });
     }
   }
@@ -189,7 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       (value) => Navigator.pushAndRemoveUntil(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) => const LoginScreen(),
+                                          builder: (_) => const UserScreen(),
                                         ),
                                         (route) => false,
                                       ),
