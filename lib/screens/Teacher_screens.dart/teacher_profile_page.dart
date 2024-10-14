@@ -1,20 +1,19 @@
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-import 'package:school_erp/screens/home_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+class TeacherProfilePage extends StatefulWidget {
+  const TeacherProfilePage({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<TeacherProfilePage> createState() => _TeacherProfilePageState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _TeacherProfilePageState extends State<TeacherProfilePage> {
   String _userName = '';
   String _enrollmentNumber = '';
   String _profileImageUrl = '';
@@ -22,14 +21,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Controllers for user input fields
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _enrollmentController = TextEditingController();
+  final TextEditingController _classController = TextEditingController();
   final TextEditingController _sectionController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
-  final TextEditingController _fatherNameController = TextEditingController();
-  final TextEditingController _motherNameController = TextEditingController();
+  final TextEditingController _designationController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _classController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker(); // Image picker
   User? _currentUser; // Firebase user
@@ -45,14 +43,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void dispose() {
     // Dispose of the controllers
     _nameController.dispose();
-    _enrollmentController.dispose();
     _sectionController.dispose();
     _dobController.dispose();
     _contactController.dispose();
-    _fatherNameController.dispose();
-    _motherNameController.dispose();
+    _designationController.dispose();
     _addressController.dispose();
     _classController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -67,7 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_currentUser != null) {
       try {
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
-            .collection('users')
+            .collection('teachers')
             .doc(_currentUser!.uid)
             .collection('profile_history')
             .doc(_currentUser!.uid) // Using UID as document ID
@@ -78,19 +75,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           setState(() {
             _userName = userData['name'] ?? 'NA';
-            _enrollmentNumber = userData['enrollmentNumber'] ?? 'Not available';
             _profileImageUrl = userData['profileImageUrl'] ?? '';
 
             // Populate text fields
             _nameController.text = userData['name'] ?? '';
-            _enrollmentController.text = userData['enrollmentNumber'] ?? '';
             _sectionController.text = userData['section'] ?? '';
             _dobController.text = userData['dateOfBirth'] ?? '';
             _contactController.text = userData['contactNumber'] ?? '';
-            _fatherNameController.text = userData['fatherName'] ?? '';
-            _motherNameController.text = userData['motherName'] ?? '';
+            _designationController.text = userData['designation'] ?? '';
             _addressController.text = userData['address'] ?? '';
             _classController.text = userData['class'] ?? '';
+            _emailController.text = userData['email'] ?? '';
           });
         } else {
           print("No document found for the current user.");
@@ -141,7 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       final userDocRef = FirebaseFirestore.instance
-          .collection('users')
+          .collection('teachers')
           .doc(_currentUser!.uid)
           .collection('profile_history')
           .doc(_currentUser!.uid); // Using UID as document ID
@@ -149,15 +144,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Store updated profile data
       await userDocRef.set({
         'name': _nameController.text,
-        'enrollmentNumber': _enrollmentController.text,
         'section': _sectionController.text,
         'dateOfBirth': _dobController.text,
         'contactNumber': _contactController.text,
-        'fatherName': _fatherNameController.text,
-        'motherName': _motherNameController.text,
+        'designation': _designationController.text,
         'address': _addressController.text,
         'class': _classController.text,
         'profileImageUrl': _profileImageUrl,
+        'email': _emailController,
       });
 
       setState(() {
@@ -170,14 +164,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _validateFields() {
     if (_nameController.text.isEmpty ||
-        _enrollmentController.text.isEmpty ||
         _sectionController.text.isEmpty ||
         _dobController.text.isEmpty ||
         _contactController.text.isEmpty ||
-        _fatherNameController.text.isEmpty ||
-        _motherNameController.text.isEmpty ||
+        _designationController.text.isEmpty ||
         _addressController.text.isEmpty ||
-        _classController.text.isEmpty) {
+        _classController.text.isEmpty ||
+        _emailController.text.isEmpty) {
       return false;
     }
     return true;
@@ -286,9 +279,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 10),
               TextFormField(
-                controller: _enrollmentController,
+                controller: _emailController,
                 decoration: const InputDecoration(
-                  labelText: 'Enrollment Number',
+                  labelText: 'email',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -296,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               TextFormField(
                 controller: _classController,
                 decoration: const InputDecoration(
-                  labelText: 'class',
+                  labelText: 'class holding',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -304,7 +297,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               TextFormField(
                 controller: _sectionController,
                 decoration: const InputDecoration(
-                  labelText: 'section',
+                  labelText: 'name of the section holding',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -326,20 +319,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 10),
               TextFormField(
-                controller: _fatherNameController,
+                controller: _designationController,
                 decoration: const InputDecoration(
-                  labelText: 'Father\'s Name',
+                  labelText: 'designation',
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 10),
-              TextFormField(
-                controller: _motherNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Mother\'s Name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
               const SizedBox(height: 10),
               TextFormField(
                 controller: _addressController,
@@ -359,8 +345,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         await _storeUserProfile(); // Store user profile on save
                         Navigator.pop(context, {
                           'username': _nameController.text,
-                          'enrollmentNumber': _enrollmentController.text,
+                          'section': _sectionController.text,
                           'classyear': _classController.text,
+                          'email': _emailController,
                         });
                       }
                     } else {

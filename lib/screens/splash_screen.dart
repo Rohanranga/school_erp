@@ -2,11 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:school_erp/components/plain_background.dart';
-import 'package:school_erp/screens/user_screen.dart';
+import 'package:school_erp/screens/login_screens/user_screen.dart';
 
 import '../model/user_model.dart';
-import 'home_screen.dart';
-import 'login_screen.dart';
+import 'student_screens/home_screen.dart';
+import 'login_screens/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:school_erp/screens/home_screen.dart';
+import 'package:school_erp/screens/Teacher_screens.dart/teacher_home_screen.dart';
+import 'package:school_erp/screens/student_screens/home_screen.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -77,7 +78,7 @@ class _UserScreenState extends State<UserScreen> {
             // Navigate to HomeScreen on successful login
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const HomeScreen()),
+              MaterialPageRoute(builder: (_) => const TeacherHomeScreen()),
             );
           } else {
             // Teacher not found in Firestore

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:school_erp/screens/home_screen.dart';
+import 'package:school_erp/screens/student_screens/home_screen.dart';
 
 class TeacherCreateAccount extends StatefulWidget {
   const TeacherCreateAccount({super.key});

@@ -5,11 +5,10 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:school_erp/bloc/bloc_observable.dart';
 import 'package:school_erp/model/user_model.dart';
-import 'package:school_erp/screens/home_screen.dart';
-import 'package:school_erp/screens/login_screen.dart';
+import 'package:school_erp/screens/student_screens/home_screen.dart';
+import 'package:school_erp/screens/login_screens/login_screen.dart';
 import 'package:school_erp/screens/splash_screen.dart';
-import 'package:school_erp/screens/Teacher_screens.dart/teacher_signin.dart';
-import 'package:school_erp/screens/user_screen.dart';
+import 'package:school_erp/screens/login_screens/user_screen.dart';
 
 void main() async {
   await Hive.initFlutter();

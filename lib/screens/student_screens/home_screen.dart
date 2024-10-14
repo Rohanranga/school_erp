@@ -7,11 +7,11 @@ import 'package:school_erp/screens/assignment_screen.dart';
 import 'package:school_erp/screens/attendance/attendance_screen.dart';
 import 'package:school_erp/screens/events/events_screen.dart';
 import 'package:school_erp/screens/fees_due_screen.dart';
-import 'package:school_erp/screens/settings_screen.dart';
+import 'package:school_erp/screens/student_screens/settings_screen.dart';
 
-import '../model/user_model.dart';
-import '../reusable_widgets/home_screen_cards/master_card.dart';
-import '../reusable_widgets/home_screen_cards/small_card.dart';
+import '../../model/user_model.dart';
+import '../../reusable_widgets/home_screen_cards/master_card.dart';
+import '../../reusable_widgets/home_screen_cards/small_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
