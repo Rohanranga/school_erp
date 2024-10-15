@@ -1,6 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:school_erp/components/plain_background.dart';
+import 'package:school_erp/components/textfield.dart';
+import 'package:school_erp/screens/Teacher_screens.dart/teacher_home_screen.dart';
+import 'package:school_erp/screens/login_screens/user_screen.dart';
 import 'package:school_erp/screens/student_screens/home_screen.dart';
 
 class TeacherCreateAccount extends StatefulWidget {
@@ -44,7 +48,7 @@ class _TeacherCreateAccountScreenState extends State<TeacherCreateAccount> {
       // Navigate to the HomeScreen on successful account creation
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => const TeacherHomeScreen()),
       );
     } catch (e) {
       // Handle account creation error
@@ -78,55 +82,92 @@ class _TeacherCreateAccountScreenState extends State<TeacherCreateAccount> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create Teacher Account'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+      backgroundColor: const Color(0xFF5D83C6),
+      body: SafeArea(
+        child: Stack(
           children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                border: OutlineInputBorder(),
+            const PlainBackground(),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Container with white background for the image
+                    Container(
+                      width: 160,
+                      height: 160,
+                      decoration: BoxDecoration(
+                        color: Colors.white, // White background
+                        borderRadius:
+                            BorderRadius.circular(20), // Rounded corners
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.asset(
+                          'assets/matbuck.jpg', // Ensure correct path
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    CommonTextField(
+                      controller: _nameController,
+                      hintText: "name",
+                      textStyle: const TextStyle(color: Colors.white),
+                      hintTextStyle: const TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 20),
+                    CommonTextField(
+                      controller: _designationController,
+                      isPassword: false,
+                      hintText: "designation",
+                      textStyle: const TextStyle(color: Colors.white),
+                      hintTextStyle: const TextStyle(color: Colors.white70),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    CommonTextField(
+                      controller: _emailController,
+                      hintText: "Email",
+                      textStyle: const TextStyle(color: Colors.white),
+                      hintTextStyle: const TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 20),
+                    CommonTextField(
+                      controller: _passwordController,
+                      isPassword: true,
+                      hintText: "password",
+                      obscureText: true,
+                      textStyle: const TextStyle(color: Colors.white),
+                      hintTextStyle: const TextStyle(color: Colors.white70),
+                    ),
+
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _createAccount,
+                      child: _isLoading
+                          ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                          : const Text("Sign Up"),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const UserScreen()));
+                      },
+                      child: Text(
+                        'Back to login page?',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20.0),
-            TextFormField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20.0),
-            TextFormField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20.0),
-            TextFormField(
-              controller: _designationController,
-              decoration: const InputDecoration(
-                labelText: 'Designation',
-                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20.0),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _createAccount,
-              child: _isLoading
-                  ? const CircularProgressIndicator()
-                  : const Text('Create Account'),
             ),
           ],
         ),
