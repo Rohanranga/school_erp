@@ -1,33 +1,34 @@
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+
+class TeacherProfilePage extends StatefulWidget {
+  const TeacherProfilePage({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<TeacherProfilePage> createState() => _TeacherProfilePageState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _TeacherProfilePageState extends State<TeacherProfilePage> {
   String _userName = '';
   String _enrollmentNumber = '';
   String _profileImageUrl = '';
-  File? _profileImage; // Profile image file
+  File? _profileImage;
+  String _email = ''; // Profile image file
 
   // Controllers for user input fields
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _enrollmentController = TextEditingController();
-  final TextEditingController _branchController = TextEditingController();
+  final TextEditingController _classController = TextEditingController();
+  final TextEditingController _sectionController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
-  final TextEditingController _fatherNameController = TextEditingController();
-  final TextEditingController _motherNameController = TextEditingController();
+  final TextEditingController _designationController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _academicController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker(); // Image picker
   User? _currentUser; // Firebase user
@@ -43,14 +44,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void dispose() {
     // Dispose of the controllers
     _nameController.dispose();
-    _enrollmentController.dispose();
-    _branchController.dispose();
+    _sectionController.dispose();
     _dobController.dispose();
     _contactController.dispose();
-    _fatherNameController.dispose();
-    _motherNameController.dispose();
+    _designationController.dispose();
     _addressController.dispose();
-    _academicController.dispose();
+    _classController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -65,7 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_currentUser != null) {
       try {
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
-            .collection('users')
+            .collection('teachers')
             .doc(_currentUser!.uid)
             .collection('profile_history')
             .doc(_currentUser!.uid) // Using UID as document ID
@@ -76,19 +76,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           setState(() {
             _userName = userData['name'] ?? 'NA';
-            _enrollmentNumber = userData['enrollmentNumber'] ?? 'Not available';
             _profileImageUrl = userData['profileImageUrl'] ?? '';
+            _email = userData['email'] ?? '';
 
             // Populate text fields
             _nameController.text = userData['name'] ?? '';
-            _enrollmentController.text = userData['enrollmentNumber'] ?? '';
-            _branchController.text = userData['branch'] ?? '';
+            _sectionController.text = userData['section'] ?? '';
             _dobController.text = userData['dateOfBirth'] ?? '';
             _contactController.text = userData['contactNumber'] ?? '';
-            _fatherNameController.text = userData['fatherName'] ?? '';
-            _motherNameController.text = userData['motherName'] ?? '';
+            _designationController.text = userData['designation'] ?? '';
             _addressController.text = userData['address'] ?? '';
-            _academicController.text = userData['academic'] ?? '';
+            _classController.text = userData['class'] ?? '';
+            _emailController.text = userData['email'] ?? '';
           });
         } else {
           print("No document found for the current user.");
@@ -139,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       final userDocRef = FirebaseFirestore.instance
-          .collection('users')
+          .collection('teachers')
           .doc(_currentUser!.uid)
           .collection('profile_history')
           .doc(_currentUser!.uid); // Using UID as document ID
@@ -147,35 +146,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Store updated profile data
       await userDocRef.set({
         'name': _nameController.text,
-        'enrollmentNumber': _enrollmentController.text,
-        'branch': _branchController.text,
+        'section': _sectionController.text,
         'dateOfBirth': _dobController.text,
         'contactNumber': _contactController.text,
-        'fatherName': _fatherNameController.text,
-        'motherName': _motherNameController.text,
+        'designation': _designationController.text,
         'address': _addressController.text,
-        'academic': _academicController.text,
+        'class': _classController.text,
         'profileImageUrl': _profileImageUrl,
+        'email': _emailController.text,
       });
 
       setState(() {
         _isLoading = false;
       });
     } catch (e) {
-      print("Error storing user profile: $e");
+      print("Error storing teacher data  $e");
     }
   }
 
   bool _validateFields() {
     if (_nameController.text.isEmpty ||
-        _enrollmentController.text.isEmpty ||
-        _branchController.text.isEmpty ||
+        _sectionController.text.isEmpty ||
         _dobController.text.isEmpty ||
         _contactController.text.isEmpty ||
-        _fatherNameController.text.isEmpty ||
-        _motherNameController.text.isEmpty ||
+        _designationController.text.isEmpty ||
         _addressController.text.isEmpty ||
-        _academicController.text.isEmpty) {
+        _classController.text.isEmpty ||
+        _emailController.text.isEmpty) {
       return false;
     }
     return true;
@@ -197,7 +194,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(true); // User confirms
+                Navigator.of(context).pop(true);
+                Navigator.pushReplacementNamed(
+                    context, '/home'); // User confirms
               },
               child: const Text("Confirm"),
             ),
@@ -221,15 +220,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Profile image
               GestureDetector(
                 onTap: () async {
-                  final XFile? image =
-                      await _picker.pickImage(source: ImageSource.camera);
-                  setState(() {
-                    if (image != null) {
-                      _profileImage = File(image.path);
-                    } else {
-                      _profileImage = null;
-                    }
-                  });
+                  final ImageSource? source = await showDialog<ImageSource>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text("Select Image Source"),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(ImageSource.camera);
+                            },
+                            child: const Text("Camera"),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(ImageSource.gallery);
+                            },
+                            child: const Text("Gallery"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (source != null) {
+                    final XFile? image =
+                        await _picker.pickImage(source: source);
+                    setState(() {
+                      if (image != null) {
+                        _profileImage = File(image.path);
+                      } else {
+                        _profileImage = null;
+                      }
+                    });
+                  }
                 },
                 child: CircleAvatar(
                   radius: 50,
@@ -257,17 +281,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 10),
               TextFormField(
-                controller: _enrollmentController,
+                controller: _emailController,
                 decoration: const InputDecoration(
-                  labelText: 'Enrollment Number',
+                  labelText: 'email',
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 10),
               TextFormField(
-                controller: _branchController,
+                controller: _classController,
                 decoration: const InputDecoration(
-                  labelText: 'Branch',
+                  labelText: 'class holding',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _sectionController,
+                decoration: const InputDecoration(
+                  labelText: 'name of the section holding',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -289,17 +321,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 10),
               TextFormField(
-                controller: _fatherNameController,
+                controller: _designationController,
                 decoration: const InputDecoration(
-                  labelText: 'Father\'s Name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _motherNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Mother\'s Name',
+                  labelText: 'designation',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -308,14 +332,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 controller: _addressController,
                 decoration: const InputDecoration(
                   labelText: 'Address',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _academicController,
-                decoration: const InputDecoration(
-                  labelText: 'Academic',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -330,8 +346,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         await _storeUserProfile(); // Store user profile on save
                         Navigator.pop(context, {
                           'username': _nameController.text,
-                          'enrollmentNumber': _enrollmentController.text,
-                          'academicyear': _academicController.text,
+                          'section': _sectionController.text,
+                          'classyear': _classController.text,
+                          'email': _emailController,
                         });
                       }
                     } else {

@@ -3,61 +3,51 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:school_erp/constants/colors.dart';
-import 'package:school_erp/screens/change_password_screen.dart';
-import 'package:school_erp/screens/profile_screen.dart';
-import '../model/user_model.dart';
-import '../reusable_widgets/loader.dart';
-import 'login_screen.dart';
+import 'package:school_erp/model/user_model.dart';
+import 'package:school_erp/reusable_widgets/loader.dart';
+import 'package:school_erp/screens/Teacher_screens.dart/teacher_change_password.dart';
+import 'package:school_erp/screens/Teacher_screens.dart/teacher_profile_page.dart';
+import 'package:school_erp/screens/login_screens/user_screen.dart';
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+class TeacherSettingScreen extends StatefulWidget {
+  const TeacherSettingScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  State<TeacherSettingScreen> createState() => _TeacherSettingScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
-  String _username = '';
-  String _enrollmentNumber = '';
-  bool _isLoading = false;
+class _TeacherSettingScreenState extends State<TeacherSettingScreen> {
+  String username = '';
+  String section = '';
+  bool isLoading = false;
+  String classyear = '';
+  String _profileImageUrl = '';
+
+  Future<void> _fetchUserData() async {
+    final userDocRef = FirebaseFirestore.instance
+        .collection('teachers')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('profile_history')
+        .doc(FirebaseAuth.instance.currentUser!.uid);
+
+    final userDoc = await userDocRef.get();
+
+    if (userDoc.exists) {
+      final userData = userDoc.data() as Map<String, dynamic>;
+
+      setState(() {
+        _profileImageUrl = userData['profileImageUrl'];
+        username = userData['name'];
+        section = userData['section'];
+        classyear = userData['class'];
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _fetchUserData();
-  }
-
-  void _fetchUserData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    final User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      final DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUser.uid)
-          .get();
-
-      if (userDoc.exists) {
-        final userData = userDoc.data() as Map<String, dynamic>;
-
-        setState(() {
-          _username = userData['name'] ?? ''; // Get user's name from Firestore
-          _enrollmentNumber = userData['enrollmentNumber'] ??
-              ''; // Get user's enrollment number from Firestore
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -86,15 +76,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Row(
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 35,
+                      backgroundImage: _profileImageUrl.isNotEmpty
+                          ? NetworkImage(_profileImageUrl)
+                          : null,
                     ),
                     const SizedBox(width: 20.0),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _username, // Display username
+                          username, // Display username
                           style: const TextStyle(
                             fontSize: 20.0,
                             fontWeight: FontWeight.w500,
@@ -102,7 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                         Text(
-                          _enrollmentNumber, // Display enrollment number
+                          'Class teacher -$classyear$section', // Display enrollment number
                           style: const TextStyle(
                             fontSize: 13.0,
                             color: Colors.black45,
@@ -142,15 +135,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const ProfileScreen(),
+                        builder: (_) => const TeacherProfilePage(),
                       ),
                     );
 
                     // If the result is not null, update the username and enrollment number
                     if (result != null) {
                       setState(() {
-                        _username = result['name'];
-                        _enrollmentNumber = result['enrollmentNumber'];
+                        username = result['name'];
+                        classyear = result['class'];
+                        section = result['section'];
                       });
                     }
                   },
@@ -161,7 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const ChangePasswordScreen(),
+                        builder: (_) => const TeacherChangePassword(),
                       ),
                     );
                   },
@@ -196,7 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       (value) => Navigator.pushAndRemoveUntil(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) => const LoginScreen(),
+                                          builder: (_) => const UserScreen(),
                                         ),
                                         (route) => false,
                                       ),

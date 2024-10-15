@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:school_erp/components/plain_background.dart';
 import 'package:school_erp/components/textfield.dart';
-import 'package:school_erp/screens/home_screen.dart';
-import 'package:school_erp/screens/events/signup_screen.dart';
+import 'package:school_erp/screens/student_screens/home_screen.dart';
+import 'package:school_erp/screens/login_screens/signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);

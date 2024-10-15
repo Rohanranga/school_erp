@@ -2,64 +2,58 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:school_erp/screens/ask_doubt_screen.dart';
-import 'package:school_erp/screens/assignment_screen.dart';
-import 'package:school_erp/screens/attendance/attendance_screen.dart';
-import 'package:school_erp/screens/events/events_screen.dart';
+import 'package:school_erp/constants/colors.dart';
+import 'package:school_erp/model/user_model.dart';
+import 'package:school_erp/reusable_widgets/home_screen_cards/master_card.dart';
+import 'package:school_erp/reusable_widgets/home_screen_cards/small_card.dart';
+import 'package:school_erp/reusable_widgets/loader.dart';
+import 'package:school_erp/screens/Teacher_screens.dart/teacher_attendance.dart';
+import 'package:school_erp/screens/Teacher_screens.dart/teacher_change_password.dart';
+import 'package:school_erp/screens/Teacher_screens.dart/teacher_profile_page.dart';
+import 'package:school_erp/screens/Teacher_screens.dart/teacher_setting_screen.dart';
 import 'package:school_erp/screens/fees_due_screen.dart';
-import 'package:school_erp/screens/settings_screen.dart';
+import 'package:school_erp/screens/login_screens/user_screen.dart';
 
-import '../model/user_model.dart';
-import '../reusable_widgets/home_screen_cards/master_card.dart';
-import '../reusable_widgets/home_screen_cards/small_card.dart';
-
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class TeacherHomeScreen extends StatefulWidget {
+  const TeacherHomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<TeacherHomeScreen> createState() => _TeacherHomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   String username = '';
-  String enrollmentNumber = '';
-  String academicyear = '';
+  String section = '';
+  String classyear = '';
+  String _profileImageUrl = '';
+  String email = '';
+
+  Future<void> _fetchUserProfile() async {
+    final userDocRef = FirebaseFirestore.instance
+        .collection('teachers')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('profile_history')
+        .doc(FirebaseAuth.instance.currentUser!.uid);
+
+    final userDoc = await userDocRef.get();
+
+    if (userDoc.exists) {
+      final userData = userDoc.data() as Map<String, dynamic>;
+
+      setState(() {
+        _profileImageUrl = userData['profileImageUrl'];
+        username = userData['name'];
+        section = userData['section'];
+        classyear = userData['class'];
+        email = userData['email'];
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    fetchUserData();
-  }
-
-  void fetchUserData() async {
-    try {
-      final User? currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        final DocumentSnapshot userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.uid)
-            .get();
-
-        if (userDoc.exists) {
-          final userData = userDoc.data() as Map<String, dynamic>;
-
-          setState(() {
-            username = userData['username'] ??
-                ''; // Get user's username from Firestore
-            enrollmentNumber = userData['enrollmentNumber'] ??
-                ''; // Get user's enrollment number from Firestore
-            academicyear = userData['academicyear'] ??
-                ''; // Get user's academicyear from Firestore
-          });
-        } else {
-          print('No user data found');
-        }
-      } else {
-        print('No current user');
-      }
-    } catch (e) {
-      print('Error fetching user data: $e');
-    }
+    _fetchUserProfile();
   }
 
   @override
@@ -98,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             Text(
-                              "EnrollmentNumber :$enrollmentNumber",
+                              "$email",
                               style: const TextStyle(
                                 color: Colors.white54,
                                 fontSize: 16.0,
@@ -115,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderRadius: BorderRadius.circular(20.0),
                               ),
                               child: Text(
-                                "Academicyear:$academicyear",
+                                "classteacher of:$classyear-$section",
                                 style: const TextStyle(
                                   color: Color(0xFF6184C7),
                                   fontSize: 14.0,
@@ -130,16 +124,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const SettingsScreen(),
+                                builder: (_) => const TeacherSettingScreen(),
                               ),
                             );
                           },
-                          child: const CircleAvatar(
-                            radius: 30.0,
-                            child: Icon(
-                              Icons.person,
-                              size: 40,
-                            ),
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundImage: _profileImageUrl.isNotEmpty
+                                ? NetworkImage(_profileImageUrl)
+                                : null,
                           ),
                         )
                       ],
@@ -158,13 +151,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => const AttendanceScreen(),
+                                    builder: (_) => const TeacherAttendance(),
                                   ),
                                 );
                               },
                               child: const HomeScreenMasterCard(
                                 attendance: true,
-                                tooltext: 'Check out your attendance here ',
+                                tooltext: 'students attendance',
                               ),
                             ),
                             GestureDetector(
@@ -218,47 +211,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               },
                             ),
-                            HomeScreenSmallCard(
-                              tooltext: 'Submit your assignments here ',
-                              icon: Icons.person,
-                              buttonText: "Assignments",
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AssignmentScreen(),
-                                ),
-                              ),
-                            ),
-                            HomeScreenSmallCard(
-                              tooltext: 'Feel free to ask doughts here ',
-                              icon: Icons.chat,
-                              buttonText: "Ask Doubts",
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AskDoubtScreen(),
-                                ),
-                              ),
-                            ),
-                            HomeScreenSmallCard(
-                              tooltext: 'Checkout all the events here ',
-                              icon: Icons.edit_calendar_rounded,
-                              buttonText: "Events",
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const EventsScreen(),
-                                ),
-                              ),
-                            ),
-                            HomeScreenSmallCard(
-                              tooltext: 'E-Books are here ',
-                              icon: Icons.book,
-                              buttonText: "Books",
-                            )
                           ],
                         ),
-                        const SizedBox(height: 20.0),
                       ],
                     ),
                   ),

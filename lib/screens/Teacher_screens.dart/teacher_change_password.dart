@@ -1,19 +1,19 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 import 'package:school_erp/components/buttom_vector_image.dart';
 import 'package:school_erp/components/custom_appbar.dart';
 import 'package:school_erp/components/heading.dart';
 import 'package:school_erp/components/star_background.dart';
 import 'package:school_erp/components/submit_button.dart';
 
-class ChangePasswordScreen extends StatefulWidget {
-  const ChangePasswordScreen({super.key});
+class TeacherChangePassword extends StatefulWidget {
+  const TeacherChangePassword({super.key});
 
   @override
-  _ChangePasswordScreenState createState() => _ChangePasswordScreenState();
+  State<TeacherChangePassword> createState() => _TeacherChangePasswordState();
 }
 
-class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+class _TeacherChangePasswordState extends State<TeacherChangePassword> {
   final _oldPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _reenterPasswordController = TextEditingController();
@@ -44,7 +44,31 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
         // Update the password
         await user.updatePassword(newPassword);
-        _showMessage("Password changed successfully!");
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Password Changed"),
+              content: Text("Your password has been changed successfully."),
+              actions: [
+                TextButton(
+                  child: Text("Cancel"),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                ),
+                TextButton(
+                  child: Text("OK"),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.of(context)
+                        .pushReplacementNamed('/home'); // Return to home screen
+                  },
+                ),
+              ],
+            );
+          },
+        );
       } catch (e) {
         _showMessage("Failed to change password: $e");
       }
