@@ -84,7 +84,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Hi,$username",
+                              "Hi,\n$username",
                               style: const TextStyle(
                                 fontSize: 30.0,
                                 fontWeight: FontWeight.w400,

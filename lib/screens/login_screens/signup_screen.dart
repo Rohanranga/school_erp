@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:school_erp/components/plain_background.dart';
 import 'package:school_erp/components/textfield.dart';
+import 'package:school_erp/screens/login_screens/user_screen.dart';
 import 'package:school_erp/screens/student_screens/home_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -175,6 +176,18 @@ class _SignupScreenState extends State<SignupScreen> {
                             color: Colors.white,
                           )
                         : const Text("Sign Up"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const UserScreen()));
+                    },
+                    child: Text(
+                      'Back to login page?',
+                      style: TextStyle(color: Colors.black),
+                    ),
                   ),
                 ],
               ),
