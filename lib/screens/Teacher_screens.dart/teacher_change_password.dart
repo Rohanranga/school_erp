@@ -44,7 +44,31 @@ class _TeacherChangePasswordState extends State<TeacherChangePassword> {
 
         // Update the password
         await user.updatePassword(newPassword);
-        _showMessage("Password changed successfully!");
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Password Changed"),
+              content: Text("Your password has been changed successfully."),
+              actions: [
+                TextButton(
+                  child: Text("Cancel"),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                ),
+                TextButton(
+                  child: Text("OK"),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.of(context)
+                        .pushReplacementNamed('/home'); // Return to home screen
+                  },
+                ),
+              ],
+            );
+          },
+        );
       } catch (e) {
         _showMessage("Failed to change password: $e");
       }
