@@ -153,14 +153,14 @@ class _TeacherProfilePageState extends State<TeacherProfilePage> {
         'address': _addressController.text,
         'class': _classController.text,
         'profileImageUrl': _profileImageUrl,
-        'email': _emailController,
+        'email': _emailController.text,
       });
 
       setState(() {
         _isLoading = false;
       });
     } catch (e) {
-      print("Error storing user profile: $e");
+      print("Error storing teacher data  $e");
     }
   }
 

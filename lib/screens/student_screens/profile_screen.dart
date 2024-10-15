@@ -162,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print("Error storing user profile: $e");
+      print("Error storing student data: $e");
     }
   }
 

@@ -201,7 +201,7 @@ class _UserScreenState extends State<UserScreen> {
                     child: Column(
                       children: [
                         Image.asset(
-                          'assets/download.png', // Replace with your teacher image
+                          'assets/8065183.png', // Replace with your teacher image
                           height: 140.0,
                           width: 140.0,
                         ),
