@@ -252,28 +252,28 @@ class _UserScreenState extends State<UserScreen> {
                 ),
               ),
               const SizedBox(height: 20.0),
-              TextButton(
-                onPressed: () {
-                  if (isStudent) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const SignupScreen()),
-                    );
-                  } else {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const TeacherCreateAccount()),
-                    );
-                  }
-                },
-                child: Text(
-                  isStudent
-                      ? 'Register for student account?'
-                      : 'Register for teacher account?',
-                  style: TextStyle(color: Colors.blue),
-                ),
-              ),
+              // TextButton(
+              //   onPressed: () {
+              //     if (isStudent) {
+              //       Navigator.pushReplacement(
+              //         context,
+              //         MaterialPageRoute(builder: (_) => const SignupScreen()),
+              //       );
+              //     } else {
+              //       Navigator.pushReplacement(
+              //         context,
+              //         MaterialPageRoute(
+              //             builder: (_) => const TeacherCreateAccount()),
+              //       );
+              //     }
+              //   },
+              //   child: Text(
+              //     isStudent
+              //         ? 'Register for student account?'
+              //         : 'Register for teacher account?',
+              //     style: TextStyle(color: Colors.blue),
+              //   ),
+              // ),
               ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 child: _isLoading
