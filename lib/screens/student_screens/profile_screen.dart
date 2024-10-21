@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -211,6 +210,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Extracted date picker dialog
+  Future<void> _showDatePickerDialog() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select Date of Birth'),
+          content: Container(
+            width: double.maxFinite,
+            height: 350, // Adjust height if needed to fit your layout
+            child: SfDateRangePicker(
+              selectionMode: DateRangePickerSelectionMode.single,
+              onSelectionChanged: (DateRangePickerSelectionChangedArgs args) {
+                setState(() {
+                  if (args.value != null) {
+                    DateTime selectedDate = args.value;
+                    _dobController.text = selectedDate
+                        .toLocal()
+                        .toString()
+                        .split(' ')[0]; // Formatting as YYYY-MM-DD
+                  }
+                });
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -318,48 +355,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       .calendar_today), // Calendar icon to indicate date picker
                 ),
                 readOnly: true, // Make the field read-only
-                onTap: () async {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Select Date of Birth'),
-                        content: Container(
-                          // Ensuring the date picker fits within the dialog
-                          width: double.maxFinite,
-                          height:
-                              350, // Adjust height if needed to fit your layout
-                          child: SfDateRangePicker(
-                            selectionMode: DateRangePickerSelectionMode.single,
-                            onSelectionChanged:
-                                (DateRangePickerSelectionChangedArgs args) {
-                              setState(() {
-                                if (args.value != null) {
-                                  DateTime selectedDate = args.value;
-                                  _dobController.text = selectedDate
-                                      .toLocal()
-                                      .toString()
-                                      .split(
-                                          ' ')[0]; // Formatting as YYYY-MM-DD
-                                }
-                              });
-                            },
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Close the dialog
-                            },
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
+                onTap: _showDatePickerDialog, // Show date picker dialog
               ),
-
               const SizedBox(height: 10),
               TextFormField(
                 controller: _contactController,

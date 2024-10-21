@@ -11,6 +11,7 @@ import 'package:school_erp/screens/Teacher_screens.dart/teacher_attendance.dart'
 import 'package:school_erp/screens/Teacher_screens.dart/teacher_change_password.dart';
 import 'package:school_erp/screens/Teacher_screens.dart/teacher_profile_page.dart';
 import 'package:school_erp/screens/Teacher_screens.dart/teacher_setting_screen.dart';
+import 'package:school_erp/screens/events/events_screen.dart';
 import 'package:school_erp/screens/fees_due_screen.dart';
 import 'package:school_erp/screens/login_screens/user_screen.dart';
 
@@ -210,6 +211,17 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                                   ),
                                 );
                               },
+                            ),
+                            HomeScreenSmallCard(
+                              tooltext: 'Checkout all the events here ',
+                              icon: Icons.edit_calendar_rounded,
+                              buttonText: "Events",
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const EventsScreen(),
+                                ),
+                              ),
                             ),
                           ],
                         ),
