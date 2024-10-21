@@ -51,6 +51,11 @@ dependencies:
   bloc: ^8.1.4
   firebase_auth: ^5.3.1
   syncfusion_flutter_datepicker: ^27.1.53
+  firebase_auth_web: ^5.13.2
+  firebase_core_web: ^2.18.1
+  firebase_ui_auth: ^1.16.0
+  video_player: ^2.9.2
+  url_launcher: ^6.3.1
 
 
 dev_dependencies:

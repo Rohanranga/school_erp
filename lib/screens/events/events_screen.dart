@@ -1,121 +1,152 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:school_erp/components/custom_appbar.dart';
-import 'package:school_erp/components/star_background.dart';
-import 'package:school_erp/constants/colors.dart';
-import 'package:school_erp/model/events_model.dart';
-import '../../reusable_widgets/event_card.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+// Event model (same as before)
+class Event {
+  final String title;
+  final String description;
+  final DateTime date;
+  final String? imageUrl;
+
+  Event(
+      {required this.title,
+      required this.description,
+      required this.date,
+      this.imageUrl});
+
+  factory Event.fromMap(Map<String, dynamic> data) {
+    return Event(
+      title: data['title'],
+      description: data['description'],
+      date: (data['date'] as Timestamp).toDate(),
+      imageUrl: data['imageUrl'],
+    );
+  }
+}
+
+// EventDetailScreen
+class EventDetailScreen extends StatelessWidget {
+  final Event event;
+
+  const EventDetailScreen({Key? key, required this.event}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(event.title),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
+              Center(
+                child: Image.network(
+                  event.imageUrl!,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            SizedBox(height: 16),
+            Text(
+              event.title,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            SizedBox(height: 8),
+            Text(
+              "${event.date.toLocal()}".split(' ')[0],
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            SizedBox(height: 16),
+            Text(
+              event.description,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Updated EventsScreen
 class EventsScreen extends StatefulWidget {
-  const EventsScreen({super.key});
+  const EventsScreen({Key? key}) : super(key: key);
 
   @override
   State<EventsScreen> createState() => _EventsScreenState();
 }
 
 class _EventsScreenState extends State<EventsScreen> {
-  bool loading = true;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late Future<List<Event>> _events;
 
-  //Firebase - Firestore initialization
-  CollectionReference firestore =
-      FirebaseFirestore.instance.collection('events');
-
-  List<Events> eventList = [];
+  Future<List<Event>> fetchEvents() async {
+    QuerySnapshot snapshot = await _firestore.collection('events').get();
+    return snapshot.docs
+        .map((doc) => Event.fromMap(doc.data() as Map<String, dynamic>))
+        .toList();
+  }
 
   @override
   void initState() {
-    data();
     super.initState();
-  }
-
-  Future<void> data() async {
-    await firestore.get().then((value) => value.docs.forEach((element) {
-          setState(() {
-            eventList.add(
-                Events(element["title"], element["description"], element["time"], element["image"]));
-          });
-          debugPrint("EventList: ${eventList.toString()}");
-          debugPrint("EventList: ${eventList[0].title}");
-        }));
-    setState(() {
-      loading = false;
-    });
-    // final allData = querySnapshot.docs.map((doc) => doc.data());
+    _events = fetchEvents();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF7292CF),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            const StarBackground(),
-            Column(
-              children: [
-                const CustomAppBar(title: "Events & Programs"),
-                Expanded(
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    margin: const EdgeInsets.only(top: 30.0),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(20.0),
-                          topLeft: Radius.circular(20.0)),
-                    ),
-                    child: loading
-                        ? const Center(
-                            child: CircularProgressIndicator(
-                              color: primaryColor,
-                            ),
-                          )
-                        : SingleChildScrollView(
-                            child: Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 10.0),
-                                    ListView.builder(
-                                      physics: const NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      itemCount: eventList.length,
-                                      itemBuilder:
-                                          (BuildContext context, int index) {
-                                        return EventCard(
-                                          title: eventList[index].title!,
-                                          date: eventList[index].time!,
-                                          subtitle: eventList[index].subtitle!,
-                                          image: eventList[index].image!,
-                                          heroTag: "event$index",
-                                        );
-                                      },
-                                    ),
-                                    // EventCard(
-                                    //     title: "Sleepover Night",
-                                    //     date: "06 Jan 24, 09:00 AM",
-                                    //     subtitle: "A sleepover is a great treat for kids. Many schools use such an event as the culminating activity of the school year.",
-                                    // ),
-                                    // EventCard(
-                                    //   title: "Fishing Tournament",
-                                    //   date: "12 Jan 24, 09:00 AM",
-                                    //   subtitle: "Silver Sands Middle School in Port Orange, Florida, offers many special events, but one of the most unique ones is a springtime...",
-                                    // ),
-                                    // EventCard(
-                                    //   title: "Rhyme Time: A Night of Poetry",
-                                    //   date: "24 Jan 24, 09:00 AM",
-                                    //   subtitle: "April is also National Poetry Month. Now there is a great theme for a fun family night! Combine poetry readings by students...",
-                                    // ),
-                                  ],
-                                )),
-                          ),
+      appBar: AppBar(
+        title: Text("Events"),
+      ),
+      body: FutureBuilder<List<Event>>(
+        future: _events,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text("No events found"));
+          } else {
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                final event = snapshot.data![index];
+                return ListTile(
+                  leading: event.imageUrl != null && event.imageUrl!.isNotEmpty
+                      ? CircleAvatar(
+                          backgroundImage: NetworkImage(event.imageUrl!),
+                          radius: 25,
+                        )
+                      : Icon(Icons.event, size: 50),
+                  title: Text(event.title),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(event.description),
+                      Text(
+                        "${event.date.toLocal()}".split(' ')[0],
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
                   ),
-                )
-              ],
-            ),
-          ],
-        ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EventDetailScreen(event: event),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          }
+        },
       ),
     );
   }

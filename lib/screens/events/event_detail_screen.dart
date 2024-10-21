@@ -1,109 +1,169 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:video_player/video_player.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class EventDetailScreen extends StatelessWidget {
-  final String date;
-  final String title;
-  final String subtitle;
-  final String image;
-  final String heroTag;
+class EventDetailScreen extends StatefulWidget {
+  final String eventId;
 
-  const EventDetailScreen({
-    super.key,
-    required this.date,
-    required this.title,
-    required this.subtitle,
-    required this.image,
-    required this.heroTag,
-  });
+  const EventDetailScreen({Key? key, required this.eventId}) : super(key: key);
+
+  @override
+  _EventDetailScreenState createState() => _EventDetailScreenState();
+}
+
+class _EventDetailScreenState extends State<EventDetailScreen> {
+  VideoPlayerController? _videoController;
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              flex: 4,
-              child: Stack(
-                children: [
-                  Hero(
-                    tag: heroTag,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      color: const Color(0xFFCACACA),
-                      child: image == "" ? null : Image.network(image, fit: BoxFit.cover,),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.all(15.0),
-                      child: Icon(
-                        Icons.chevron_left_rounded,
-                        size: 40,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 6,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 20.0, horizontal: 25.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.access_time_outlined,
-                          color: Color(0xFF6789CA),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 5.0),
-                        Text(
-                          date,
-                          style: const TextStyle(
-                            fontSize: 13.0,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF6789CA),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20.0),
-                    Text(
-                      title,
-                      textAlign: TextAlign.start,
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 10.0),
-                    Text(
-                      subtitle,
-                      textAlign: TextAlign.justify,
-                      style: const TextStyle(
-                        fontSize: 13.0,
-                        color: Color(0xFF777777),
-                      ),
-                    )
-                  ],
+      appBar: AppBar(
+        title: const Text('Event Details'),
+      ),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance
+            .collection('events')
+            .doc(widget.eventId)
+            .get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text('Event not found.'));
+          }
+
+          var eventData = snapshot.data!.data() as Map<String, dynamic>;
+          String title = eventData['title'] ?? 'No Title';
+          String date = eventData['date'] ?? 'No Date';
+          String description = eventData['description'] ?? 'No Description';
+          List<dynamic> mediaUrls = eventData['mediaUrls'] ?? [];
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
-              ),
-            )
-          ],
-        ),
+                const SizedBox(height: 8),
+                Text(
+                  'Date: $date',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  description,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 16),
+                // Display all mediaUrls (image, video, file)
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: mediaUrls.length,
+                    itemBuilder: (context, index) {
+                      return _buildMediaWidget(mediaUrls[index]);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
+  }
+
+  // Helper method to determine media type and build widget accordingly
+  Widget _buildMediaWidget(String mediaUrl) {
+    if (isImage(mediaUrl)) {
+      return Center(
+          child: Image.network(
+        mediaUrl,
+        height: 250,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        loadingBuilder: (BuildContext context, Widget child,
+            ImageChunkEvent? loadingProgress) {
+          if (loadingProgress == null) {
+            return child;
+          } else {
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        (loadingProgress.expectedTotalBytes ?? 1)
+                    : null,
+              ),
+            );
+          }
+        },
+        errorBuilder:
+            (BuildContext context, Object exception, StackTrace? stackTrace) {
+          return const Center(child: Text('Failed to load image'));
+        },
+      ));
+    } else if (isVideo(mediaUrl)) {
+      _videoController = VideoPlayerController.network(mediaUrl)
+        ..initialize().then((_) {
+          setState(() {});
+          _videoController?.play();
+        });
+      return Center(
+        child: _videoController?.value.isInitialized ?? false
+            ? AspectRatio(
+                aspectRatio: _videoController!.value.aspectRatio,
+                child: VideoPlayer(_videoController!),
+              )
+            : const CircularProgressIndicator(),
+      );
+    } else {
+      // For files (PDFs, documents, etc.)
+      return Center(
+        child: Column(
+          children: [
+            const Icon(Icons.insert_drive_file, size: 100),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () async {
+                if (await canLaunch(mediaUrl)) {
+                  await launch(mediaUrl); // Open the file URL
+                } else {
+                  throw 'Could not launch $mediaUrl';
+                }
+              },
+              child: const Text('Open File'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  // Helper methods to check media type
+  bool isImage(String url) {
+    return url.endsWith('.jpg') ||
+        url.endsWith('.jpeg') ||
+        url.endsWith('.png') ||
+        url.endsWith('.gif');
+  }
+
+  bool isVideo(String url) {
+    return url.endsWith('.mp4') ||
+        url.endsWith('.mov') ||
+        url.endsWith('.avi') ||
+        url.endsWith('.mkv');
   }
 }
