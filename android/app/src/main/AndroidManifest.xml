@@ -1,13 +1,20 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.school_erp">
 
+    <!-- Internet permission for Firebase and Razorpay -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Permissions for saving PDFs and accessing storage -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
         android:label="school_erp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true"> <!-- Added here -->
-
+        android:theme="@style/LaunchTheme"
+        android:enableOnBackInvokedCallback="true"
+        android:requestLegacyExternalStorage="true">
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -17,10 +24,7 @@
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
 
-            <!-- Specifies an Android theme to apply to this Activity as soon as
-                 the Android process has started. This theme is visible to the user
-                 while the Flutter UI initializes. After that, this theme continues
-                 to determine the Window background behind the Flutter UI. -->
+            <!-- Flutter-specific configurations -->
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme"/>
@@ -35,10 +39,10 @@
             </intent-filter>
         </activity>
 
-        <!-- Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <!-- Meta-data for Flutter tool -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
+
 </manifest>
