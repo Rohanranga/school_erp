@@ -166,7 +166,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => const FeesDueScreen(),
+                                    builder: (_) => FeesDueScreen(),
                                   ),
                                 );
                               },
@@ -219,7 +219,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const EventsScreen(),
+                                  builder: (_) => EventsScreen(),
                                 ),
                               ),
                             ),

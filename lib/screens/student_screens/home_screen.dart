@@ -162,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => const FeesDueScreen(),
+                                    builder: (_) => FeesDueScreen(),
                                   ),
                                 );
                               },
@@ -237,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const EventsScreen(),
+                                  builder: (_) => EventsScreen(),
                                 ),
                               ),
                             ),
