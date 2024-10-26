@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -160,10 +161,13 @@ class _UserScreenState extends State<UserScreen> {
                       ),
                       child: Column(
                         children: [
-                          Image.asset(
-                            'assets/download.png', // Replace with your student image
-                            height: 140.0,
-                            width: 140.0,
+                          ZoomIn(
+                            duration: Duration(seconds: 2),
+                            child: Image.asset(
+                              'assets/download.png', // Replace with your student image
+                              height: 140.0,
+                              width: 140.0,
+                            ),
                           ),
                           const SizedBox(height: 8.0),
                           const Text(
@@ -205,10 +209,13 @@ class _UserScreenState extends State<UserScreen> {
                       ),
                       child: Column(
                         children: [
-                          Image.asset(
-                            'assets/8065183.png', // Replace with your teacher image
-                            height: 140.0,
-                            width: 140.0,
+                          ZoomIn(
+                            duration: Duration(seconds: 2),
+                            child: Image.asset(
+                              'assets/8065183.png', // Replace with your teacher image
+                              height: 140.0,
+                              width: 140.0,
+                            ),
                           ),
                           const SizedBox(height: 8.0),
                           const Text(
@@ -233,23 +240,29 @@ class _UserScreenState extends State<UserScreen> {
                 ],
               ),
               const SizedBox(height: 20.0),
-              TextFormField(
-                controller:
-                    isStudent ? _enrollmentController : _emailController,
-                decoration: InputDecoration(
-                  labelText: isStudent ? 'Enrollment Number' : 'Email',
-                  floatingLabelBehavior: FloatingLabelBehavior.auto,
-                  border: const OutlineInputBorder(),
+              FadeInLeft(
+                duration: Duration(seconds: 2),
+                child: TextFormField(
+                  controller:
+                      isStudent ? _enrollmentController : _emailController,
+                  decoration: InputDecoration(
+                    labelText: isStudent ? 'Enrollment Number' : 'Email',
+                    floatingLabelBehavior: FloatingLabelBehavior.auto,
+                    border: const OutlineInputBorder(),
+                  ),
                 ),
               ),
               const SizedBox(height: 20.0),
-              TextFormField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  floatingLabelBehavior: FloatingLabelBehavior.auto,
-                  border: OutlineInputBorder(),
+              FadeInRight(
+                duration: Duration(seconds: 2),
+                child: TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    floatingLabelBehavior: FloatingLabelBehavior.auto,
+                    border: OutlineInputBorder(),
+                  ),
                 ),
               ),
               const SizedBox(height: 20.0),
@@ -275,31 +288,34 @@ class _UserScreenState extends State<UserScreen> {
               //     style: TextStyle(color: Colors.blue),
               //   ),
               // ),
-              ElevatedButton(
-                style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(
-                      const Color.fromARGB(255, 135, 180, 236),
-                    ),
-                    foregroundColor: WidgetStateProperty.all(Colors.black)),
-                onPressed: _isLoading ? null : _login,
-                child: _isLoading
-                    ? SizedBox(
-                        width: 24, // Set the width of the loading indicator
-                        height: 24, // Set the height of the loading indicator
-                        child: LoadingIndicator(
-                          indicatorType: Indicator
-                              .ballPulse, // Use the ballPulse indicator
-                          colors: [
-                            Colors.red,
-                            Colors.green,
-                            Colors.blue
-                          ], // Customize the color
-                          strokeWidth: 2, // Set the stroke width
-                          backgroundColor:
-                              Colors.transparent, // Set background color
-                        ),
-                      )
-                    : const Text('Login'),
+              ZoomIn(
+                duration: Duration(seconds: 2),
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(
+                        const Color.fromARGB(255, 135, 180, 236),
+                      ),
+                      foregroundColor: WidgetStateProperty.all(Colors.black)),
+                  onPressed: _isLoading ? null : _login,
+                  child: _isLoading
+                      ? SizedBox(
+                          width: 24, // Set the width of the loading indicator
+                          height: 24, // Set the height of the loading indicator
+                          child: LoadingIndicator(
+                            indicatorType: Indicator
+                                .ballPulse, // Use the ballPulse indicator
+                            colors: [
+                              Colors.red,
+                              Colors.green,
+                              Colors.blue
+                            ], // Customize the color
+                            strokeWidth: 2, // Set the stroke width
+                            backgroundColor:
+                                Colors.transparent, // Set background color
+                          ),
+                        )
+                      : const Text('Login'),
+                ),
               )
             ],
           ),
