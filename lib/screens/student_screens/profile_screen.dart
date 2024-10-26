@@ -290,13 +290,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (source != null) {
                       final XFile? image =
                           await _picker.pickImage(source: source);
-                      setState(() {
-                        if (image != null) {
-                          _profileImage = File(image.path);
-                        } else {
-                          _profileImage = null;
-                        }
-                      });
+                      setState(
+                        () {
+                          if (image != null) {
+                            _profileImage = File(image.path);
+                          } else {
+                            _profileImage = null;
+                          }
+                        },
+                      );
                     }
                   },
                   child: CircleAvatar(
