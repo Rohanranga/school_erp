@@ -21,7 +21,7 @@ class HomeScreenMasterCard extends StatelessWidget {
       width: MediaQuery.of(context).size.width / 2.35,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10.0),
+        borderRadius: BorderRadius.circular(15.0),
         border: Border.all(
           color: const Color(0xFF345FB4),
         ),

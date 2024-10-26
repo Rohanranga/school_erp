@@ -2,15 +2,17 @@ import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:page_animation_transition/animations/bottom_to_top_faded_transition.dart';
+import 'package:page_animation_transition/animations/fade_animation_transition.dart';
+import 'package:page_animation_transition/page_animation_transition.dart';
 import 'package:school_erp/screens/ask_doubt_screen.dart';
 import 'package:school_erp/screens/assignment_screen.dart';
 import 'package:school_erp/screens/attendance/attendance_screen.dart';
 import 'package:school_erp/screens/events/events_screen.dart';
 import 'package:school_erp/screens/fees_due_screen.dart';
 import 'package:school_erp/screens/student_screens/settings_screen.dart';
+import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
-import '../../model/user_model.dart';
 import '../../reusable_widgets/home_screen_cards/master_card.dart';
 import '../../reusable_widgets/home_screen_cards/small_card.dart';
 
@@ -26,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String enrollmentNumber = '';
   String classyear = '';
   String _profileImageUrl = '';
-  String _attendance = '';
+  // String _attendance = '';
   String _feesDue = '';
   String _section = '';
 
@@ -144,21 +146,22 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const SettingsScreen(),
+                        ZoomTapAnimation(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                  PageAnimationTransition(
+                                      page: const SettingsScreen(),
+                                      pageAnimationType:
+                                          FadeAnimationTransition()));
+                            },
+                            child: ZoomIn(
+                              child: CircleAvatar(
+                                radius: 50,
+                                backgroundImage: _profileImageUrl.isNotEmpty
+                                    ? NetworkImage(_profileImageUrl)
+                                    : null,
                               ),
-                            );
-                          },
-                          child: ZoomIn(
-                            child: CircleAvatar(
-                              radius: 50,
-                              backgroundImage: _profileImageUrl.isNotEmpty
-                                  ? NetworkImage(_profileImageUrl)
-                                  : null,
                             ),
                           ),
                         )
@@ -173,37 +176,39 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const AttendanceScreen(),
+                            ZoomTapAnimation(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                      PageAnimationTransition(
+                                          page: const AttendanceScreen(),
+                                          pageAnimationType:
+                                              FadeAnimationTransition()));
+                                },
+                                child: BounceInLeft(
+                                  child: const HomeScreenMasterCard(
+                                    attendancepercentage: '',
+                                    attendance: true,
+                                    tooltext: 'Check out your attendance here ',
                                   ),
-                                );
-                              },
-                              child: BounceInLeft(
-                                child: const HomeScreenMasterCard(
-                                  attendancepercentage: '',
-                                  attendance: true,
-                                  tooltext: 'Check out your attendance here ',
                                 ),
                               ),
                             ),
                             BounceInRight(
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => FeesDueScreen(),
-                                    ),
-                                  );
-                                },
-                                child: HomeScreenMasterCard(
-                                  feespending: _feesDue,
-                                  tooltext: 'Check your fee due here',
-                                  attendance: false,
+                              child: ZoomTapAnimation(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                        PageAnimationTransition(
+                                            page: const FeesDueScreen(),
+                                            pageAnimationType:
+                                                FadeAnimationTransition()));
+                                  },
+                                  child: HomeScreenMasterCard(
+                                    feespending: '₹$_feesDue/-',
+                                    tooltext: 'Check your fee due here',
+                                    attendance: false,
+                                  ),
                                 ),
                               ),
                             ),
@@ -217,76 +222,78 @@ class _HomeScreenState extends State<HomeScreen> {
                           spacing: 20.0,
                           children: [
                             BounceInDown(
-                              child: HomeScreenSmallCard(
-                                text: '',
-                                tooltext:
-                                    'Check out your marks by tapping the button',
-                                icon: Icons.collections_bookmark_rounded,
-                                buttonText: "Marks",
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text(
-                                        "Feature coming soon...",
-                                        style: TextStyle(
-                                          fontSize: 14.0,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white70,
+                              child: ZoomTapAnimation(
+                                child: HomeScreenSmallCard(
+                                  text: '',
+                                  tooltext:
+                                      'Check out your marks by tapping the button',
+                                  icon: Icons.collections_bookmark_rounded,
+                                  buttonText: "Marks",
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Text(
+                                          "Feature coming soon...",
+                                          style: TextStyle(
+                                            fontSize: 14.0,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.white70,
+                                          ),
                                         ),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8.0)),
+                                        closeIconColor: Colors.white,
+                                        showCloseIcon: true,
+                                        behavior: SnackBarBehavior.floating,
+                                        backgroundColor: const Color(0xFF2855AE)
+                                            .withOpacity(0.9),
                                       ),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0)),
-                                      closeIconColor: Colors.white,
-                                      showCloseIcon: true,
-                                      behavior: SnackBarBehavior.floating,
-                                      backgroundColor: const Color(0xFF2855AE)
-                                          .withOpacity(0.9),
-                                    ),
-                                  );
-                                },
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                             BounceInDown(
-                              child: HomeScreenSmallCard(
-                                text: '',
-                                tooltext: 'Submit your assignments here ',
-                                icon: Icons.person,
-                                buttonText: "Assignments",
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const AssignmentScreen(),
-                                  ),
-                                ),
+                              child: ZoomTapAnimation(
+                                child: HomeScreenSmallCard(
+                                    text: '',
+                                    tooltext: 'Submit your assignments here ',
+                                    icon: Icons.person,
+                                    buttonText: "Assignments",
+                                    onTap: () => Navigator.of(context).push(
+                                        PageAnimationTransition(
+                                            page: const AssignmentScreen(),
+                                            pageAnimationType:
+                                                BottomToTopFadedTransition()))),
                               ),
                             ),
                             BounceInUp(
-                              child: HomeScreenSmallCard(
-                                text: '',
-                                tooltext: 'Feel free to ask doughts here ',
-                                icon: Icons.chat,
-                                buttonText: "Ask Doubts",
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const AskDoubtScreen(),
-                                  ),
-                                ),
+                              child: ZoomTapAnimation(
+                                child: HomeScreenSmallCard(
+                                    text: '',
+                                    tooltext: 'Feel free to ask doughts here ',
+                                    icon: Icons.chat,
+                                    buttonText: "Ask Doubts",
+                                    onTap: () => Navigator.of(context).push(
+                                        PageAnimationTransition(
+                                            page: const AskDoubtScreen(),
+                                            pageAnimationType:
+                                                BottomToTopFadedTransition()))),
                               ),
                             ),
                             BounceInUp(
-                              child: HomeScreenSmallCard(
-                                text: '',
-                                tooltext: 'Checkout all the events here ',
-                                icon: Icons.edit_calendar_rounded,
-                                buttonText: "Events",
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => EventsScreen(),
-                                  ),
-                                ),
+                              child: ZoomTapAnimation(
+                                child: HomeScreenSmallCard(
+                                    text: '',
+                                    tooltext: 'Checkout all the events here ',
+                                    icon: Icons.edit_calendar_rounded,
+                                    buttonText: "Events",
+                                    onTap: () => Navigator.of(context).push(
+                                        PageAnimationTransition(
+                                            page: EventsScreen(),
+                                            pageAnimationType:
+                                                BottomToTopFadedTransition()))),
                               ),
                             ),
                           ],

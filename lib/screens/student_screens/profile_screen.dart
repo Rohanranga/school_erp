@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -260,55 +261,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               // Profile image
-              GestureDetector(
-                onTap: () async {
-                  final ImageSource? source = await showDialog<ImageSource>(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text("Select Image Source"),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(ImageSource.camera);
-                            },
-                            child: const Text("Camera"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(ImageSource.gallery);
-                            },
-                            child: const Text("Gallery"),
-                          ),
-                        ],
-                      );
-                    },
-                  );
+              ZoomTapAnimation(
+                child: GestureDetector(
+                  onTap: () async {
+                    final ImageSource? source = await showDialog<ImageSource>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text("Select Image Source"),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(ImageSource.camera);
+                              },
+                              child: const Text("Camera"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(ImageSource.gallery);
+                              },
+                              child: const Text("Gallery"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
 
-                  if (source != null) {
-                    final XFile? image =
-                        await _picker.pickImage(source: source);
-                    setState(() {
-                      if (image != null) {
-                        _profileImage = File(image.path);
-                      } else {
-                        _profileImage = null;
-                      }
-                    });
-                  }
-                },
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage: _profileImage != null
-                      ? Image.file(_profileImage!).image
-                      : _profileImageUrl.isNotEmpty
-                          ? NetworkImage(_profileImageUrl)
-                          : null,
-                  child: _profileImage != null
-                      ? null
-                      : _profileImageUrl.isNotEmpty
-                          ? null
-                          : Icon(Icons.add_a_photo, size: 30),
+                    if (source != null) {
+                      final XFile? image =
+                          await _picker.pickImage(source: source);
+                      setState(() {
+                        if (image != null) {
+                          _profileImage = File(image.path);
+                        } else {
+                          _profileImage = null;
+                        }
+                      });
+                    }
+                  },
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: _profileImage != null
+                        ? Image.file(_profileImage!).image
+                        : _profileImageUrl.isNotEmpty
+                            ? NetworkImage(_profileImageUrl)
+                            : null,
+                    child: _profileImage != null
+                        ? null
+                        : _profileImageUrl.isNotEmpty
+                            ? null
+                            : Icon(Icons.add_a_photo, size: 30),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),

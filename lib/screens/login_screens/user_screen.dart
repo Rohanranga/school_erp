@@ -3,9 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_indicator/loading_indicator.dart';
-import 'package:school_erp/screens/Teacher_screens.dart/teacher_create_account.dart';
 import 'package:school_erp/screens/Teacher_screens.dart/teacher_home_screen.dart';
-import 'package:school_erp/screens/login_screens/signup_screen.dart';
 import 'package:school_erp/screens/student_screens/home_screen.dart';
 
 class UserScreen extends StatefulWidget {
@@ -108,6 +106,7 @@ class _UserScreenState extends State<UserScreen> {
                 const SnackBar(content: Text("User  not found")),
               );
             } else {
+              // ignore: use_build_context_synchronously
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text("Login failed: $e")),
               );

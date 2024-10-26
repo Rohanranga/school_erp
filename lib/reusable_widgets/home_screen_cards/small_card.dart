@@ -23,9 +23,15 @@ class HomeScreenSmallCard extends StatelessWidget {
         height: MediaQuery.of(context).size.width / 3,
         padding: const EdgeInsets.all(20.0),
         decoration: BoxDecoration(
-          color: const Color(0xFF345FB4).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10.0),
-        ),
+            color: const Color(0xFF345FB4).withOpacity(0.3),
+            borderRadius: BorderRadius.circular(12.0),
+            boxShadow: [
+              BoxShadow(
+                  blurRadius: 3,
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 3,
+                  offset: Offset(0, 2))
+            ]),
         child: Tooltip(
           preferBelow: true,
           message: tooltext,
