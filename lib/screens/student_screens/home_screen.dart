@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String enrollmentNumber = '';
   String classyear = '';
   String _profileImageUrl = '';
+  String _attendance = '';
+  String _feesDue = '';
+  String _section = '';
 
   Future<void> _fetchUserProfile() async {
     final userDocRef = FirebaseFirestore.instance
@@ -43,7 +47,31 @@ class _HomeScreenState extends State<HomeScreen> {
         username = userData['name'];
         enrollmentNumber = userData['enrollmentNumber'];
         classyear = userData['class'];
+        _section = userData['section'];
       });
+      await _fetchFeesDue(enrollmentNumber);
+    }
+  }
+
+  Future<void> _fetchFeesDue(String enrollmentNumber) async {
+    final feeDocRef =
+        FirebaseFirestore.instance.collection('fees').doc(enrollmentNumber);
+
+    final feeDoc = await feeDocRef.get();
+
+    if (feeDoc.exists) {
+      final feeData = feeDoc.data() as Map<String, dynamic>;
+      final amount = feeData['amount']; // Fetch the amount value
+
+      setState(() {
+        _feesDue = amount.toString(); // Convert to string to display in UI
+      });
+    } else {
+      // Show "Due" if no data is found
+      setState(() {
+        _feesDue = "NULL";
+      });
+      print("No fees data found for enrollment number: $enrollmentNumber");
     }
   }
 
@@ -106,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderRadius: BorderRadius.circular(20.0),
                               ),
                               child: Text(
-                                "classyear:$classyear",
+                                "Class:$classyear$_section",
                                 style: const TextStyle(
                                   color: Color(0xFF6184C7),
                                   fontSize: 14.0,
@@ -125,11 +153,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           },
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundImage: _profileImageUrl.isNotEmpty
-                                ? NetworkImage(_profileImageUrl)
-                                : null,
+                          child: ZoomIn(
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundImage: _profileImageUrl.isNotEmpty
+                                  ? NetworkImage(_profileImageUrl)
+                                  : null,
+                            ),
                           ),
                         )
                       ],
@@ -152,23 +182,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 );
                               },
-                              child: const HomeScreenMasterCard(
-                                attendance: true,
-                                tooltext: 'Check out your attendance here ',
+                              child: BounceInLeft(
+                                child: const HomeScreenMasterCard(
+                                  attendancepercentage: '',
+                                  attendance: true,
+                                  tooltext: 'Check out your attendance here ',
+                                ),
                               ),
                             ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => FeesDueScreen(),
-                                  ),
-                                );
-                              },
-                              child: const HomeScreenMasterCard(
-                                tooltext: 'Check you fee due here ',
-                                attendance: false,
+                            BounceInRight(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => FeesDueScreen(),
+                                    ),
+                                  );
+                                },
+                                child: HomeScreenMasterCard(
+                                  feespending: _feesDue,
+                                  tooltext: 'Check your fee due here',
+                                  attendance: false,
+                                ),
                               ),
                             ),
                           ],
@@ -180,72 +216,79 @@ class _HomeScreenState extends State<HomeScreen> {
                           runSpacing: 20.0,
                           spacing: 20.0,
                           children: [
-                            HomeScreenSmallCard(
-                              tooltext:
-                                  'Check out your marks by tapping the button',
-                              icon: Icons.collections_bookmark_rounded,
-                              buttonText: "Marks",
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Text(
-                                      "Feature coming soon...",
-                                      style: TextStyle(
-                                        fontSize: 14.0,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white70,
+                            BounceInDown(
+                              child: HomeScreenSmallCard(
+                                text: '',
+                                tooltext:
+                                    'Check out your marks by tapping the button',
+                                icon: Icons.collections_bookmark_rounded,
+                                buttonText: "Marks",
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text(
+                                        "Feature coming soon...",
+                                        style: TextStyle(
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white70,
+                                        ),
                                       ),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0)),
+                                      closeIconColor: Colors.white,
+                                      showCloseIcon: true,
+                                      behavior: SnackBarBehavior.floating,
+                                      backgroundColor: const Color(0xFF2855AE)
+                                          .withOpacity(0.9),
                                     ),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(8.0)),
-                                    closeIconColor: Colors.white,
-                                    showCloseIcon: true,
-                                    behavior: SnackBarBehavior.floating,
-                                    backgroundColor: const Color(0xFF2855AE)
-                                        .withOpacity(0.9),
+                                  );
+                                },
+                              ),
+                            ),
+                            BounceInDown(
+                              child: HomeScreenSmallCard(
+                                text: '',
+                                tooltext: 'Submit your assignments here ',
+                                icon: Icons.person,
+                                buttonText: "Assignments",
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AssignmentScreen(),
                                   ),
-                                );
-                              },
-                            ),
-                            HomeScreenSmallCard(
-                              tooltext: 'Submit your assignments here ',
-                              icon: Icons.person,
-                              buttonText: "Assignments",
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AssignmentScreen(),
                                 ),
                               ),
                             ),
-                            HomeScreenSmallCard(
-                              tooltext: 'Feel free to ask doughts here ',
-                              icon: Icons.chat,
-                              buttonText: "Ask Doubts",
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AskDoubtScreen(),
+                            BounceInUp(
+                              child: HomeScreenSmallCard(
+                                text: '',
+                                tooltext: 'Feel free to ask doughts here ',
+                                icon: Icons.chat,
+                                buttonText: "Ask Doubts",
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AskDoubtScreen(),
+                                  ),
                                 ),
                               ),
                             ),
-                            HomeScreenSmallCard(
-                              tooltext: 'Checkout all the events here ',
-                              icon: Icons.edit_calendar_rounded,
-                              buttonText: "Events",
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EventsScreen(),
+                            BounceInUp(
+                              child: HomeScreenSmallCard(
+                                text: '',
+                                tooltext: 'Checkout all the events here ',
+                                icon: Icons.edit_calendar_rounded,
+                                buttonText: "Events",
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => EventsScreen(),
+                                  ),
                                 ),
                               ),
                             ),
-                            HomeScreenSmallCard(
-                              tooltext: 'E-Books are here ',
-                              icon: Icons.book,
-                              buttonText: "Books",
-                            )
                           ],
                         ),
                         const SizedBox(height: 20.0),

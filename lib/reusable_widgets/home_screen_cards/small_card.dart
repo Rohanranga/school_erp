@@ -11,7 +11,8 @@ class HomeScreenSmallCard extends StatelessWidget {
       required this.icon,
       required this.buttonText,
       this.onTap,
-      required this.tooltext});
+      required this.tooltext,
+      required String text});
 
   @override
   Widget build(BuildContext context) {

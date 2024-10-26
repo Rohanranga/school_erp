@@ -82,16 +82,21 @@ class _FeesDueScreenState extends State<FeesDueScreen> {
   }
 
   Future<void> _generateAndSavePDF(Map<String, dynamic> feeData) async {
-    // Request storage permission
-    var status = await Permission.storage.request();
+    // Check if storage permission is granted
+    var status = await Permission.storage.status;
     if (!status.isGranted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Storage permission denied!"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
+      // Request storage permission
+      status = await Permission.storage.request();
+      if (!status.isGranted) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Storage permission denied!"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
     }
 
     final pdf = pw.Document();

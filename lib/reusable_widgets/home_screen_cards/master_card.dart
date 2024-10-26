@@ -3,9 +3,16 @@ import 'package:flutter/material.dart';
 class HomeScreenMasterCard extends StatelessWidget {
   final bool attendance;
   final String tooltext;
+  final String? attendancepercentage;
+  final String? feespending;
 
-  const HomeScreenMasterCard(
-      {super.key, required this.attendance, required this.tooltext});
+  const HomeScreenMasterCard({
+    super.key,
+    required this.attendance,
+    required this.tooltext,
+    this.attendancepercentage = "",
+    this.feespending = "",
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,9 +37,9 @@ class HomeScreenMasterCard extends StatelessWidget {
             ),
             const SizedBox(height: 24.0),
             Text(
-              attendance ? "80%" : "6400",
+              attendance ? attendancepercentage! : feespending!,
               style: const TextStyle(
-                fontSize: 40.0,
+                fontSize: 20.0,
                 fontWeight: FontWeight.w500,
                 color: Colors.black,
                 height: 1.0,

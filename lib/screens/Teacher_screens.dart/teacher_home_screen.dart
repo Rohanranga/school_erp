@@ -185,6 +185,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                           spacing: 20.0,
                           children: [
                             HomeScreenSmallCard(
+                              text: '',
                               tooltext:
                                   'Check out your marks by tapping the button',
                               icon: Icons.collections_bookmark_rounded,
@@ -213,6 +214,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                               },
                             ),
                             HomeScreenSmallCard(
+                              text: '',
                               tooltext: 'Checkout all the events here ',
                               icon: Icons.edit_calendar_rounded,
                               buttonText: "Events",

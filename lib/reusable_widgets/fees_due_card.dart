@@ -46,7 +46,7 @@ class FeesDueCard extends StatelessWidget {
                     color: status == "Paid" ? Colors.green : Colors.red)),
             const SizedBox(height: 10),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 ElevatedButton.icon(
                   onPressed: onTapPay,
